@@ -32,10 +32,10 @@ df_1568.rename(columns={'Open': 'open', 'Close': 'close', \
 df_1568['k'], df_1568['d'] = talib.STOCH(df_1568['high'], df_1568['low'], df_1568['close'], fastk_period=9)
 df_1568 = df_1568.dropna()
 
-df_1568['longlinecandle'] = talib.CDLLONGLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
-df_1568['shortlinecandle'] = talib.CDLSHORTLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
-df_1568['abandonedbaby'] = talib.CDLABANDONEDBABY(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
-df_1568['breakaway'] = talib.CDLBREAKAWAY(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
+#df_1568['longlinecandle'] = talib.CDLLONGLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
+#df_1568['shortlinecandle'] = talib.CDLSHORTLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
+#df_1568['abandonedbaby'] = talib.CDLABANDONEDBABY(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
+#df_1568['breakaway'] = talib.CDLBREAKAWAY(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
 df_1568.reset_index(drop=True, inplace=True)
 willr = WILLR(df_1568)
 
@@ -89,10 +89,25 @@ if True:
 			elif (current_zoom_x_step_idx > 0):
 				current_zoom_x_step_idx = (current_zoom_x_step_idx - 1) % len(zoom_x_step)
 			
+			v = np.argmin(np.absolute(date2num(self.x_df)-xdata))
 			if (zoom_x_step[current_zoom_x_step_idx] == -1):
 				ax1.set_xlim(ax1_orig_xlim)
+				ymin = np.min(df_period['k']) if np.min(df_period['k']) < np.min(df_period['d']) else np.min(df_period['d'])
+				ymax = np.max(df_period['k']) if np.max(df_period['k']) > np.max(df_period['d']) else np.max(df_period['d'])
+				ax2.set_ylim(ymin, ymax)
 			else:
 				ax1.set_xlim(xdata - zoom_x_step[current_zoom_x_step_idx], xdata + zoom_x_step[current_zoom_x_step_idx])
+				ymin = min(	np.min(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
+							np.min(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
+				ymax = max(	np.max(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
+							np.max(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
+				ymin = ymin-5 if (ymax-5)>0 else 0
+				ymax = ymax+5 if (ymax+5)<100 else 100
+				#ymin = np.min(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
+				#ymax = np.max(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
+
+				ax2.set_ylim(ymin, ymax)
+				
 			plt.draw()
 			
 			
@@ -135,23 +150,37 @@ if True:
 	# plot the close value
 	ax1.plot(df_period['Date'], df_period['close'])
 	fig.autofmt_xdate(rotation=30)
-
+	ymin = np.min(df_period['close'])
+	ymax = np.max(df_period['close'])
+	ax1.set_ylim(ymin, ymax)
+	ax1_orig_xlim = ax1.get_xlim()
 	ax1.grid()
+
 	# plot the KD
 	ax2.plot(df_period['Date'], df_period['k'])
 	ax2.plot(df_period['Date'], df_period['d'])
 	ax2.legend(['K', 'D'], loc='upper right')	
-	ax1_orig_xlim = ax1.get_xlim()
+
 	
 	cursor = SnaptoCursor(ax1, ax2, df_period)
 	plt.connect('motion_notify_event', cursor.mouse_move)	
 	#plt.connect('scroll_event', cursor.on_scroll)
 	plt.connect('button_press_event', cursor.on_scroll)
+
+	ymin = np.min(df_period['close'])
+	ymax = np.max(df_period['close'])
+
 	
 	#centroid = (df_period['Date'].loc[100], df_period['k'].loc[100])
 	#circle1 = plt.Circle(centroid, color='r')
 	#ax2.add_artist(circle1)
 	ticks = ax2.get_xticks()
+
+	ymin = np.min(df_period['k']) if np.min(df_period['k']) < np.min(df_period['d']) else np.min(df_period['d'])
+	ymax = np.max(df_period['k']) if np.max(df_period['k']) > np.max(df_period['d']) else np.max(df_period['d'])
+	ymin = ymin-5 if (ymax-5)>0 else 0
+	ymax = ymax+5 if (ymax+5)<100 else 100
+	ax2.set_ylim(ymin, ymax)
 	
 	# set mouse scroll event
 
