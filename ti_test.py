@@ -62,6 +62,7 @@ if True:
 	ax1_txt = None
 	ax2_txt = None
 	zoom_x_step = [-1, 90, 60, 30, 20, 10, 7, 3]
+	zoom_circle_r = [2, 1, 1, 1, 1, 1, 0.5, 0.2]
 	current_zoom_x_step_idx = 0
 
 	class SnaptoCursor(object):
@@ -91,6 +92,45 @@ if True:
 			self.txt2 = self.ax2.text(0, 1.05, "", transform=self.ax2.transAxes)
 			plt.draw()
 			return
+			
+			
+		def redraw(self, xdata, ydata):
+			global current_zoom_x_step_idx, zoom_x_step
+			v = np.argmin(np.absolute(date2num(self.x_df)-xdata))
+			if (zoom_x_step[current_zoom_x_step_idx] == -1):
+				ax1.set_xlim(ax1_orig_xlim)
+				ymin = np.min(self.y1_df)
+				ymax = np.max(self.y1_df)
+				ax1.set_ylim(ymin, ymax)				
+				ymin = np.min(self.y2_k_df) if np.min(self.y2_k_df) < np.min(self.y2_d_df) else np.min(self.y2_d_df)
+				ymax = np.max(self.y2_k_df) if np.max(self.y2_k_df) > np.max(self.y2_d_df) else np.max(self.y2_d_df)
+				ax2.set_ylim(ymin, ymax)
+			else:
+				try:
+					xmin = date2num(self.x_df[v-zoom_x_step[current_zoom_x_step_idx]])
+					xmax = date2num(self.x_df[v+zoom_x_step[current_zoom_x_step_idx]])
+				except:
+					print('error redraw: xdata = {}, v = {}'.format(xdata, v))
+					return
+				ax1.set_xlim(xmin, xmax)
+				for c in ax2.artists:
+					c.width = zoom_circle_r[current_zoom_x_step_idx]
+					c.height = zoom_circle_r[current_zoom_x_step_idx]
+				
+				ymin = np.min(self.y1_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
+				ymax = np.max(self.y1_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
+				ymin = ymin * 0.95
+				ymax = ymax * 1.05
+				ax1.set_ylim(ymin, ymax)			
+				ymin = min(	np.min(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
+							np.min(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
+				ymax = max(	np.max(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
+							np.max(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
+				ymin = ymin-5 if (ymax-5)>0 else 0
+				ymax = ymax+5 if (ymax+5)<100 else 100
+				ax2.set_ylim(ymin, ymax)
+				
+			plt.draw()
 
 		def on_scroll(self, event):
 			global current_zoom_x_step_idx, zoom_x_step
@@ -112,12 +152,17 @@ if True:
 				ymax = np.max(self.y2_k_df) if np.max(self.y2_k_df) > np.max(self.y2_d_df) else np.max(self.y2_d_df)
 				ax2.set_ylim(ymin, ymax)
 			else:
-				ax1.set_xlim(xdata - zoom_x_step[current_zoom_x_step_idx], xdata + zoom_x_step[current_zoom_x_step_idx])
+				xmin = date2num(self.x_df[v-zoom_x_step[current_zoom_x_step_idx]])
+				xmax = date2num(self.x_df[v+zoom_x_step[current_zoom_x_step_idx]])
+				ax1.set_xlim(xmin, xmax)
+				for c in ax2.artists:
+					c.width = zoom_circle_r[current_zoom_x_step_idx]
+					c.height = zoom_circle_r[current_zoom_x_step_idx]
+				
 				ymin = np.min(self.y1_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
 				ymax = np.max(self.y1_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
 				ymin = ymin * 0.95
 				ymax = ymax * 1.05
-				print('ylim = {}, {}'.format(ymin, ymax))
 				ax1.set_ylim(ymin, ymax)			
 				ymin = min(	np.min(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
 							np.min(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
@@ -129,6 +174,37 @@ if True:
 				
 			plt.draw()
 			
+		def on_key(self, event):
+			global current_zoom_x_step_idx, zoom_x_step
+			#print('on_key: ', event)
+			xdata = event.xdata
+			ydata = event.ydata
+			v = np.argmin(np.absolute(date2num(self.x_df)-xdata))
+			oldv = v
+			if event.key == 'up':
+				if (current_zoom_x_step_idx < (len(zoom_x_step)-1)):
+					current_zoom_x_step_idx = (current_zoom_x_step_idx + 1) % len(zoom_x_step)
+			if (event.key == 'down') and (current_zoom_x_step_idx > 0):
+				current_zoom_x_step_idx = (current_zoom_x_step_idx - 1) % len(zoom_x_step)
+			if (event.key == 'left'):
+				#v = v - zoom_x_step[current_zoom_x_step_idx] if v > zoom_x_step[current_zoom_x_step_idx] else zoom_x_step[current_zoom_x_step_idx]
+				v = v - zoom_x_step[current_zoom_x_step_idx]
+				#print('old v {} -> v {}, zoom = {}'.format(oldv, v, zoom_x_step[current_zoom_x_step_idx]))
+				#xdata = date2num(self.x_df[v])
+			if (event.key == 'right'):
+				v = v + zoom_x_step[current_zoom_x_step_idx]
+				#if (v + zoom_x_step[current_zoom_x_step_idx]) >= len(self.x_df):
+				#	v = self.x_df[len(self.x_df)-zoom_x_step[current_zoom_x_step_idx]]
+				#xdata = date2num(self.x_df[v])
+
+			v = v if v > zoom_x_step[current_zoom_x_step_idx] else zoom_x_step[current_zoom_x_step_idx]
+			v = v if (v + zoom_x_step[current_zoom_x_step_idx]) < len(self.x_df) else len(self.x_df)-zoom_x_step[current_zoom_x_step_idx]-1
+
+			print('v {} -> {}, zoom {}'.format(oldv, v, zoom_x_step[current_zoom_x_step_idx]))
+
+			xdata = date2num(self.x_df[v])
+
+			self.redraw(xdata, ydata)
 			
 		def mouse_move(self, event):
 
@@ -185,11 +261,22 @@ if True:
 	plt.connect('motion_notify_event', cursor.mouse_move)	
 	#plt.connect('scroll_event', cursor.on_scroll)
 	plt.connect('button_press_event', cursor.on_scroll)
+	plt.connect('key_press_event', cursor.on_key)
 
 	ymin = np.min(df_period['close'])
 	ymax = np.max(df_period['close'])
 	ax1.set_ylim(ymin, ymax)
 	
+	for idx in df_1568[df_1568['oversold_cross']==True].index:
+		centroid = (date2num(df_period['Date'].loc[idx]), df_period['k'].loc[idx])
+		c = plt.Rectangle(centroid, 2, 2, color='r')
+		c.label = str(idx)
+		ax2.add_artist(c)
+		centroid = (date2num(df_period['Date'].loc[idx]), df_period['d'].loc[idx])
+		c.label = str(idx)
+		c = plt.Rectangle(centroid, 2, 2, color='r')
+		ax2.add_artist(c)
+
 	#centroid = (df_period['Date'].loc[100], df_period['k'].loc[100])
 	#circle1 = plt.Circle(centroid, color='r')
 	#ax2.add_artist(circle1)
