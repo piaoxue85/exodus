@@ -25,7 +25,82 @@ def kd_find_overbought_cross(df):
 def kd_find_oversold_cross(df):
 	ob = (df['k'] < 22) & (df['d'] < 30) & (df['k'] > df['d'])
 	return ob
-	
+
+def investment_return_history_by_kd(df, max_loss=0.15, max_win=0.30):
+	max_invest = 0
+	money = 100
+	shares = 0
+	invest = []
+	trade_history = []
+	print('initial money {}'.format(money))
+	for idx in df.index:
+		buy = 0
+		if (df['oversold_cross'].loc[idx] == True) and (money >= df['open'].loc[idx+1]):
+
+			#print('{} K={:.1f}, D={:.1f} buy {:.2f} , money = {:.2f}, shares {}'.format(\
+			#				df['DateStr'].loc[idx+1], \
+			#				df['k'].loc[idx], df['d'].loc[idx], \
+			#				df['open'].loc[idx+1], money, shares))
+			reason = 'K {:.1f} D {:.1f}'.format(df['k'].loc[idx], df['d'].loc[idx])
+			buy = 1
+			price = df['open'].loc[idx+1]
+			date = df['DateStr'].loc[idx+1]
+			invest.append((df['DateStr'].loc[idx+1], buy, df['open'].loc[idx+1]))
+
+		if df['overbought_cross'].loc[idx] == True and shares > 0:
+			#print('{} K={:.1f}, D={:.1f} sold {:.2f} , money = {:.2f}, shares {}'.format(\
+			#					df['DateStr'].loc[idx+1], \
+			#					df['k'].loc[idx], df['d'].loc[idx], \
+			#					df['open'].loc[idx+1], money, shares))
+			reason = 'K {:.1f} D {:.1f}'.format(df['k'].loc[idx], df['d'].loc[idx])
+			buy = -1
+			price = df['open'].loc[idx+1]
+			date = df['DateStr'].loc[idx+1]
+
+		if (buy != 0):
+			shares = shares + buy
+			money = money - (buy * price)
+			total_value = money + shares * price
+			trade_history.append([date, reason, buy, price, shares, money, total_value])
+
+		for (d, s, p) in invest:
+			buy = 0
+			if df['open'].loc[idx] >= (p * (1+max_win)):
+				buy = -1 * s
+				price = df['open'].loc[idx]
+				date = date = df['DateStr'].loc[idx]
+				#print('{} org={:.2f} sold {:.2f}x{} , money = {:.2f}, shares {}'.format(\
+				#				df['DateStr'].loc[idx], \
+				#				p, \
+				#				df['open'].loc[idx], s, \
+				#				money, shares))
+				reason = 'win {:.2f}'.format(price-p)
+			if df['open'].loc[idx] < (p * (1-max_loss)):
+				buy = -1 * s
+				price = df['open'].loc[idx]
+				reason = 'loss {:.2f}'.format(p-price)
+				#print('{} org={:.2f} sold {:.2f}x{} , money = {:.2f}, shares {}'.format(\
+				#				df['DateStr'].loc[idx], \
+				#				p, \
+				#				df['open'].loc[idx], s, \
+				#				money, shares))
+
+			if buy != 0:
+				price = df['open'].loc[idx]
+				date = date = df['DateStr'].loc[idx]
+				money = money - (buy * price)
+				shares = shares + buy
+				total_value = money + shares * price
+				trade_history.append([date, reason, buy, price, shares, money, total_value])
+				invest.remove((d, s, p))
+
+
+		#print('buy {:.2f} , total in stock {:.2f}'.format(df['open'].loc[idx+1], money))
+		
+	return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])
+
+pd.options.display.float_format = '{:.2f}'.format
+
 df_1568 = pd.read_csv('1568.TW.csv', delim_whitespace=False, header=0)
 # remove null data
 df_1568 = df_1568.dropna()
@@ -38,9 +113,12 @@ df_1568.rename(columns={'Open': 'open', 'Close': 'close', \
 	
 df_1568['k'], df_1568['d'] = talib.STOCH(df_1568['high'], df_1568['low'], df_1568['close'], fastk_period=9)
 df_1568 = df_1568.dropna()
-df_1568.reset_index(drop=True, inplace=True)
 df_1568['overbought_cross'] = pd.Series(kd_find_overbought_cross(df_1568))
 df_1568['oversold_cross'] = pd.Series(kd_find_oversold_cross(df_1568))
+df_1568.reset_index(drop=True, inplace=True)
+
+trade_history = investment_return_history_by_kd(df_1568)
+#print('return = shares {}, money {:.2f}'.format(shares, money))
 
 #df_1568['longlinecandle'] = talib.CDLLONGLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
 #df_1568['shortlinecandle'] = talib.CDLSHORTLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
@@ -55,7 +133,7 @@ df_period.reset_index(drop=True, inplace=True)
 
 
 
-if True:
+if False:
 
 	fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
 	ax1_orig_xlim = None
@@ -141,42 +219,13 @@ if True:
 					current_zoom_x_step_idx = (current_zoom_x_step_idx + 1) % len(zoom_x_step)
 			elif (current_zoom_x_step_idx > 0):
 				current_zoom_x_step_idx = (current_zoom_x_step_idx - 1) % len(zoom_x_step)
-			
-			v = np.argmin(np.absolute(date2num(self.x_df)-xdata))
-			if (zoom_x_step[current_zoom_x_step_idx] == -1):
-				ax1.set_xlim(ax1_orig_xlim)
-				ymin = np.min(self.y1_df)
-				ymax = np.max(self.y1_df)
-				ax1.set_ylim(ymin, ymax)				
-				ymin = np.min(self.y2_k_df) if np.min(self.y2_k_df) < np.min(self.y2_d_df) else np.min(self.y2_d_df)
-				ymax = np.max(self.y2_k_df) if np.max(self.y2_k_df) > np.max(self.y2_d_df) else np.max(self.y2_d_df)
-				ax2.set_ylim(ymin, ymax)
-			else:
-				xmin = date2num(self.x_df[v-zoom_x_step[current_zoom_x_step_idx]])
-				xmax = date2num(self.x_df[v+zoom_x_step[current_zoom_x_step_idx]])
-				ax1.set_xlim(xmin, xmax)
-				for c in ax2.artists:
-					c.width = zoom_circle_r[current_zoom_x_step_idx]
-					c.height = zoom_circle_r[current_zoom_x_step_idx]
-				
-				ymin = np.min(self.y1_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
-				ymax = np.max(self.y1_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]])
-				ymin = ymin * 0.95
-				ymax = ymax * 1.05
-				ax1.set_ylim(ymin, ymax)			
-				ymin = min(	np.min(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
-							np.min(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
-				ymax = max(	np.max(self.y2_k_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]),
-							np.max(self.y2_d_df[v-zoom_x_step[current_zoom_x_step_idx]:v+zoom_x_step[current_zoom_x_step_idx]]))
-				ymin = ymin-5 if (ymax-5)>0 else 0
-				ymax = ymax+5 if (ymax+5)<100 else 100
-				ax2.set_ylim(ymin, ymax)
-				
-			plt.draw()
+			self.redraw(xdata, ydata)
 			
 		def on_key(self, event):
 			global current_zoom_x_step_idx, zoom_x_step
-			#print('on_key: ', event)
+
+			if (event.xdata == None) or (event.ydata == None):
+				return
 			xdata = event.xdata
 			ydata = event.ydata
 			v = np.argmin(np.absolute(date2num(self.x_df)-xdata))
@@ -187,15 +236,9 @@ if True:
 			if (event.key == 'down') and (current_zoom_x_step_idx > 0):
 				current_zoom_x_step_idx = (current_zoom_x_step_idx - 1) % len(zoom_x_step)
 			if (event.key == 'left'):
-				#v = v - zoom_x_step[current_zoom_x_step_idx] if v > zoom_x_step[current_zoom_x_step_idx] else zoom_x_step[current_zoom_x_step_idx]
 				v = v - zoom_x_step[current_zoom_x_step_idx]
-				#print('old v {} -> v {}, zoom = {}'.format(oldv, v, zoom_x_step[current_zoom_x_step_idx]))
-				#xdata = date2num(self.x_df[v])
 			if (event.key == 'right'):
 				v = v + zoom_x_step[current_zoom_x_step_idx]
-				#if (v + zoom_x_step[current_zoom_x_step_idx]) >= len(self.x_df):
-				#	v = self.x_df[len(self.x_df)-zoom_x_step[current_zoom_x_step_idx]]
-				#xdata = date2num(self.x_df[v])
 
 			v = v if v > zoom_x_step[current_zoom_x_step_idx] else zoom_x_step[current_zoom_x_step_idx]
 			v = v if (v + zoom_x_step[current_zoom_x_step_idx]) < len(self.x_df) else len(self.x_df)-zoom_x_step[current_zoom_x_step_idx]-1
