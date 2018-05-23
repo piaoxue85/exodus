@@ -26,77 +26,101 @@ def kd_find_oversold_cross(df):
 	ob = (df['k'] < 22) & (df['d'] < 30) & (df['k'] > df['d'])
 	return ob
 
-def investment_return_history_by_kd(df, max_loss=0.15, max_win=0.30):
+def buy_condition_kd(today, yesterday, cash, minK=22, minD=30, bCross=False):
+	rtn = 0
+	if yesterday['k'] < minK and yesterday['d'] < minD:
+		rtn = 1
+		
+	if rtn > 0 and bCross == True:
+		if yesterday['k'] < yesterday['d']:
+			rtn = 0
+			
+	rtn = rtn if cash >= (rtn * today['open']) else int(cash/today['open'])
+	return rtn
+	
+def sell_condition_kd(today, yesterday, minK=22, minD=30, bCross=False):
+	rtn = False
+	if yesterday['k'] < minK and yesterday['d'] < minD:
+		rtn = True
+		
+	if rtn == True and bCross == True:
+		if yesterday['k'] < yesterday['d']:
+			rtn = False
+
+	return rtn	
+	
+def investment_return_history_by_kd(df, initial=100, max_loss=0.15, max_win=0.30, name='invest_test'):
 	max_invest = 0
-	money = 100
+	cash = initial
 	shares = 0
-	invest = []
+	share_price_list = []
 	trade_history = []
-	print('initial money {}'.format(money))
-	for idx in df.index:
+	#df[name] = pd.Series([float(initial)]*len(df))
+	print('initial cash {}'.format(cash))
+	yesterday = None
+	for today in df.index:
 		buy = 0
-		if (df['oversold_cross'].loc[idx] == True) and (money >= df['open'].loc[idx+1]):
+		reason = ''
+		price = df['open'].loc[today]
+		date = df['Date'].loc[today]
+		total_value = cash + shares * df['open'].loc[today]
+		#df[name].loc[today] = total_value
+		#df.at[today, name] = total_value
+		if (yesterday == None):
+			yesterday = today
+			trade_history.append([date, reason, buy, price, shares, cash, total_value])
+			continue
 
-			#print('{} K={:.1f}, D={:.1f} buy {:.2f} , money = {:.2f}, shares {}'.format(\
-			#				df['DateStr'].loc[idx+1], \
-			#				df['k'].loc[idx], df['d'].loc[idx], \
-			#				df['open'].loc[idx+1], money, shares))
-			reason = 'K {:.1f} D {:.1f}'.format(df['k'].loc[idx], df['d'].loc[idx])
-			buy = 1
-			price = df['open'].loc[idx+1]
-			date = df['DateStr'].loc[idx+1]
-			invest.append((df['DateStr'].loc[idx+1], buy, df['open'].loc[idx+1]))
+		buy = buy_condition_kd(df.loc[today], df.loc[yesterday], cash)
+		if (buy > 0):
+			reason = 'K {:.1f} D {:.1f}'.format(df['k'].loc[yesterday], df['d'].loc[yesterday])
+			share_price_list.append((df['Date'].loc[today], buy, price))
 
-		if df['overbought_cross'].loc[idx] == True and shares > 0:
-			#print('{} K={:.1f}, D={:.1f} sold {:.2f} , money = {:.2f}, shares {}'.format(\
-			#					df['DateStr'].loc[idx+1], \
-			#					df['k'].loc[idx], df['d'].loc[idx], \
-			#					df['open'].loc[idx+1], money, shares))
-			reason = 'K {:.1f} D {:.1f}'.format(df['k'].loc[idx], df['d'].loc[idx])
-			buy = -1
-			price = df['open'].loc[idx+1]
-			date = df['DateStr'].loc[idx+1]
+		if df['overbought_cross'].loc[yesterday] == True and shares > 0:
+			reason = 'K {:.1f} D {:.1f}'.format(df['k'].loc[yesterday], df['d'].loc[yesterday])
+			buy = -1 * shares
 
 		if (buy != 0):
+			if (buy < 0):
+				sell_share = abs(buy)
+				for i in share_price_list:
+					if i[1] > sell_share:
+						i[1] = i[1] - sell_share
+						break
+					if i[1] == sell_share:
+						share_price_list.remove(i)
+						break
+					if i[1] < sell_share:
+						sell_share -= i[1]
+						share_price_list.remove(i)
+						continue
+					
 			shares = shares + buy
-			money = money - (buy * price)
-			total_value = money + shares * price
-			trade_history.append([date, reason, buy, price, shares, money, total_value])
+			cash = cash - (buy * price)
 
-		for (d, s, p) in invest:
-			buy = 0
-			if df['open'].loc[idx] >= (p * (1+max_win)):
-				buy = -1 * s
-				price = df['open'].loc[idx]
-				date = date = df['DateStr'].loc[idx]
-				#print('{} org={:.2f} sold {:.2f}x{} , money = {:.2f}, shares {}'.format(\
-				#				df['DateStr'].loc[idx], \
-				#				p, \
-				#				df['open'].loc[idx], s, \
-				#				money, shares))
-				reason = 'win {:.2f}'.format(price-p)
-			if df['open'].loc[idx] < (p * (1-max_loss)):
-				buy = -1 * s
-				price = df['open'].loc[idx]
-				reason = 'loss {:.2f}'.format(p-price)
-				#print('{} org={:.2f} sold {:.2f}x{} , money = {:.2f}, shares {}'.format(\
-				#				df['DateStr'].loc[idx], \
-				#				p, \
-				#				df['open'].loc[idx], s, \
-				#				money, shares))
+		to_sell = []
+		for (d, s, p) in share_price_list:
+			if df['open'].loc[today] >= (p * (1+max_win)):
+				to_sell.append((d, s, p))
+			if df['open'].loc[today] < (p * (1-max_loss)):
+				to_sell.append((d, s, p))
+				
+		for (d, s, p) in to_sell:
+			buy = -1 * s
+			price = df['open'].loc[today]
+			date = df['Date'].loc[today]
+			if price > p:
+				reason = 'win {:.2f}'.format(price-p)					
+			else:
+				reason = 'loss {:.2f}'.format(price-p)		
+			cash = cash - (buy * price)
+			shares = shares + buy
+			share_price_list.remove((d, s, p))
 
-			if buy != 0:
-				price = df['open'].loc[idx]
-				date = date = df['DateStr'].loc[idx]
-				money = money - (buy * price)
-				shares = shares + buy
-				total_value = money + shares * price
-				trade_history.append([date, reason, buy, price, shares, money, total_value])
-				invest.remove((d, s, p))
-
-
-		#print('buy {:.2f} , total in stock {:.2f}'.format(df['open'].loc[idx+1], money))
-		
+		total_value = cash + shares * price
+		trade_history.append([date, reason, buy, price, shares, cash, total_value])
+		print('trade: {} {} {:.2f} {} {:.2f} {:.2f} '.format(reason.ljust(16), buy, price, shares, cash, total_value))
+		yesterday = today
 	return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])
 
 pd.options.display.float_format = '{:.2f}'.format
@@ -115,10 +139,12 @@ df_1568['k'], df_1568['d'] = talib.STOCH(df_1568['high'], df_1568['low'], df_156
 df_1568 = df_1568.dropna()
 df_1568['overbought_cross'] = pd.Series(kd_find_overbought_cross(df_1568))
 df_1568['oversold_cross'] = pd.Series(kd_find_oversold_cross(df_1568))
+#df_1568['invest_test'] = pd.Series()
 df_1568.reset_index(drop=True, inplace=True)
 
-trade_history = investment_return_history_by_kd(df_1568)
-#print('return = shares {}, money {:.2f}'.format(shares, money))
+trade_history = investment_return_history_by_kd(df_1568, initial=100, max_loss=0.15, max_win=10, name='policy0')
+trade_history['Total'] = trade_history['Total'] - 100
+#print(trade_history)
 
 #df_1568['longlinecandle'] = talib.CDLLONGLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
 #df_1568['shortlinecandle'] = talib.CDLSHORTLINE(df_1568['open'], df_1568['high'], df_1568['low'], df_1568['close'])
@@ -133,9 +159,9 @@ df_period.reset_index(drop=True, inplace=True)
 
 
 
-if False:
+if True:
 
-	fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+	fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True)
 	ax1_orig_xlim = None
 	ax1_txt = None
 	ax2_txt = None
@@ -149,25 +175,31 @@ if False:
 		For simplicity, I'm assuming x is sorted
 		"""
 
-		def __init__(self, ax1, ax2, df):
+		def __init__(self, ax1, ax2, ax3, df, th):
 			self.ax1 = ax1
 			self.ax2 = ax2
+			self.ax3 = ax3
 			self.df = df
+			self.th = th
 			self.x_df = df['Date']
 			self.x_str_df = df['DateStr']
 			self.y1_df = df['close']
 			self.y2_k_df = df['k']
 			self.y2_d_df = df['d']
+
 			self.lx1 = ax1.axhline(color='k', y=self.y1_df.loc[0], linewidth=0.5, linestyle='--')  # the horiz line
 			self.ly1 = ax1.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line
 			self.lx2_k = ax2.axhline(color='k', y=self.y2_k_df.loc[0], linewidth=0.5, linestyle='--')  # the horiz line
 			self.ly2_k = ax2.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line			
 			self.lx2_d = ax2.axhline(color='k', y=self.y2_k_df.loc[0], linewidth=0.5, linestyle='--')  # the horiz line
-			self.ly2_d = ax2.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line			
-
+			self.ly2_d = ax2.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line		
+			
+			self.ly3 = ax3.axvline(color='k', x=self.th['Date'].loc[0], linewidth=0.5, linestyle='--')  # the vert line			
 			# text location in axes coords
+
 			self.txt1 = self.ax1.text(0, 1.05, "", transform=self.ax1.transAxes)
 			self.txt2 = self.ax2.text(0, 1.05, "", transform=self.ax2.transAxes)
+			self.txt3 = self.ax3.text(0, 1.05, "", transform=self.ax3.transAxes)
 			plt.draw()
 			return
 			
@@ -277,6 +309,12 @@ if False:
 			d = self.y2_d_df.loc[v]
 			self.txt2.set_text('K:{:.2f}    D:{:.2f}'.format(k, d))
 			
+			cash = self.th['Cash'].loc[v]
+			shares = self.th['Own'].loc[v]
+			surplus = self.th['Total'].loc[v]
+			self.ly3.set_xdata(x)
+			self.txt3.set_text('surplus:{:.2f} cash:{:.2f} shares:{:.2f} '.format(surplus, cash, shares))
+			
 			plt.draw()
 			
 	ax1.set_title('1568', loc='right')
@@ -300,7 +338,7 @@ if False:
 	ax2.legend(['K', 'D'], loc='upper right')	
 
 	
-	cursor = SnaptoCursor(ax1, ax2, df_period)
+	cursor = SnaptoCursor(ax1, ax2, ax3, df_period, trade_history)
 	plt.connect('motion_notify_event', cursor.mouse_move)	
 	#plt.connect('scroll_event', cursor.on_scroll)
 	plt.connect('button_press_event', cursor.on_scroll)
@@ -320,9 +358,6 @@ if False:
 		c = plt.Rectangle(centroid, 2, 2, color='r')
 		ax2.add_artist(c)
 
-	#centroid = (df_period['Date'].loc[100], df_period['k'].loc[100])
-	#circle1 = plt.Circle(centroid, color='r')
-	#ax2.add_artist(circle1)
 	ticks = ax2.get_xticks()
 
 	ymin = np.min(df_period['k']) if np.min(df_period['k']) < np.min(df_period['d']) else np.min(df_period['d'])
@@ -331,6 +366,10 @@ if False:
 	ymax = ymax+5 if (ymax+5)<100 else 100
 	ax2.set_ylim(ymin, ymax)
 	
+	
+	ax3.plot(df_period['Date'], trade_history['Total'])
+	ax3.legend(['Surplus'], loc='upper right')
+	ax3.grid()
 	# set mouse scroll event
 
 	ax2.grid()
