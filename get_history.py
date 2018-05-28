@@ -29,7 +29,7 @@ def get_history(stock, period):
 	return df
 
 def main():
-	stocDict = readStockList('stock.csv')
+	stocDict = readStockList('all_stock.csv')
 	print('stocDict = ', stocDict)
 	for stock in stocDict:
 		
@@ -37,7 +37,11 @@ def main():
 		#if stock == '2454':
 		#	df['Volume'].at['2015-12-28 13:30:00'] = 2643993
 		#if stock == '2448':
-		df['Volume'].at['2015-12-28 13:30:00'] = df['Volume'].loc['2015-12-28 13:30:00']/10
+		print('Get {}'.format(stock))
+		try:
+			df['Volume'].at['2015-12-28 13:30:00'] = df['Volume'].loc['2015-12-28 13:30:00']/10
+		except:
+			print('2015-12-28 13:30:00 not exist')
 		df['Date'] = df.index
 		df.reset_index()
 		print(df.to_csv('history/'+stock+'.csv'))

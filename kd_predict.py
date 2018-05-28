@@ -407,7 +407,7 @@ class ta_predict():
 		self.avg_price = 0
 		total_invest = 0
 		trade_history = []
-		print('initial cash {}'.format(self.initial_cash))
+		#print('initial cash {}'.format(self.initial_cash))
 		yesterday = None
 		self.cash = self.initial_cash
 		self.total_invest = 0
