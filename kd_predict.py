@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.ticker import Formatter
 from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
-
+from kd_predict import *
 
 
 class kd_draw(object):
 
-	def __init__(self, title, df, th):
+	def __init__(self, title, df, th, pngName=None):
 		#matplotlib.rc('font', family='Arial')
 		#plt.rc('font', family='simhei')
 		plt.rcParams['font.sans-serif'] = ['simhei']
@@ -34,6 +34,7 @@ class kd_draw(object):
 		self.y2_d_df = df['d']
 		self.focus_th_idx = 0
 		self.ta_focus_index = 'k'
+		self.pngName = pngName
 
 		return
 		
@@ -72,9 +73,9 @@ class kd_draw(object):
 			ymin = ymin-5 if (ymax-5)>0 else 0
 			ymax = ymax+5 if (ymax+5)<100 else 100
 			self.ax2.set_ylim(ymin, ymax)
-			
+	
 		plt.draw()
-
+		
 	def on_scroll(self, event):
 		global current_zoom_x_step_idx, zoom_x_step
 		
@@ -297,7 +298,11 @@ class kd_draw(object):
 		self.txt3 = self.ax3.text(0, 1.05, "", transform=self.ax3.transAxes)
 		
 		self.ax2.grid()
-		plt.show()		
+		
+		if self.pngName == None:
+			plt.show()		
+		else:
+			plt.savefig(self.pngName)
 
 class ta_predict():
 	def __init__(self, df):
@@ -444,3 +449,22 @@ class ta_predict():
 	def draw():
 		self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, sharex=True)
 
+	def is_eligible(self, max=(80, 80, 75), min=(20, 25, 20)):
+		(sell_k, sell_d, sell_RSI) = max
+		(buy_k, buy_d, buy_RSI) = min
+		
+		currentK = self.df['k'].tail(1).values[0]
+		currentD = self.df['d'].tail(1).values[0]
+		currentRSI = self.df['RSI'].tail(1).values[0]
+		currentVol = self.df['volume'].tail(1).values[0]
+		vol_median = self.df['volume'].tail(10).median()
+		if (currentK >= sell_k) and (currentD >= sell_d) and (currentRSI >= sell_RSI):
+			return 'SELL'
+			
+		if (currentK <= buy_k) and (currentD <= buy_d) and (currentRSI <= buy_RSI):
+			return 'BUY'
+			
+		if currentVol >= (1.5 * vol_median) and currentVol > 1000:
+			return 'WATCH current {}, median {}'.format(currentVol, vol_median)
+			
+		return 'Nothing'

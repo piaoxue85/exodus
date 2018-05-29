@@ -7,18 +7,11 @@ from matplotlib.ticker import Formatter
 from talib.abstract import *
 from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
 from kd_predict import *
+from utility import *
 import talib
 import argparse
 from collections import OrderedDict
-
-def readStockList(fname):
-	_stock = OrderedDict()
-	f = open(fname, mode='r', encoding="utf-8")
-	for line in f:
-		w = line.replace('\n', '').split(',')
-		_stock[w[0]] = (w[0], w[1])
-	f.close()
-	return _stock	
+import datetime
 
 def main():
 
@@ -32,33 +25,14 @@ def main():
 
 	stockList = readStockList('all_stock.csv')
 	initial_cash = args['initial']
+	
+	now = datetime.datetime.now()
 
 	for stock in stockList:
-		try:
-			df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
-		except:
-			#print('history/'+stock+'.csv has problem')
-			continue
-		if df_main.empty:
-			continue
-		# remove null data
 		initial_cash = args['initial']
-		df_main = df_main.dropna()
-		#df_main = df_main.drop('Adj Close', 1)
-		df_main['Date'] = pd.to_datetime(df_main.Date)
-		df_main['DateStr'] = df_main['Date'].dt.strftime('%Y-%m-%d')
-		df_main['Volume'] = df_main['Volume'] / 1000
-		df_main.rename(columns={'Open': 'open', 'Close': 'close', \
-								'High': 'high', 'Low': 'low', 'Volume': 'volume'
-								}, inplace=True)
-			
-		df_main['k'], df_main['d'] = talib.STOCH(df_main['high'], df_main['low'], df_main['close'], fastk_period=9)
-		df_main['RSI'] =  talib.RSI(df_main['close'], timeperiod=10)
-		df_main = df_main.dropna()
-		#df_main['overbought_cross'] = pd.Series(kd_find_overbought_cross(df_main))
-		#df_main['oversold_cross'] = pd.Series(kd_find_oversold_cross(df_main))
-		#df_main['invest_test'] = pd.Series()
-		df_main.reset_index(drop=True, inplace=True)
+		empty, df_main = readStockHistory(stock)
+		if empty == True:
+			continue
 
 		predict = ta_predict(df_main)
 		
@@ -85,8 +59,20 @@ def main():
 		#										oversold_idx=(22, 30, 10, False))
 		#kd_p1['Total'] = kd_p1['Total'] - initial_cash
 	
-	#trade_history = [('kd_p0', kd_p0), ('kd_p1', kd_p1)]
-	#draw = kd_draw(stockList[args['stock']][0]+'  '+stockList[args['stock']][1], df_main, trade_history)
-	#draw.draw()
-	
+		#trade_history = [('kd_p0', kd_p0), ('kd_p1', kd_p1)]
+		trade_history = [('ta_p0', ta_p0)]
+		pngName = 'figures/{}_{}{:02d}{:02d}.png'.format(stock, now.year, now.month, now.day)
+		#pngName = None
+		draw = kd_draw(stockList[stock][0]+'  '+stockList[stock][1], df_main, trade_history, pngName)
+		draw.draw()
+		df_short = df_main.tail(200)
+		df_short.reset_index(drop=True, inplace=True)
+		ta_p0_short = ta_p0.tail(200)
+		ta_p0_short.reset_index(drop=True, inplace=True)
+		trade_history = [('ta_p0', ta_p0_short)]
+		pngName = 'figures/{}_{}{:02d}{:02d}_01.png'.format(stock, now.year, now.month, now.day)
+		draw = kd_draw(stockList[stock][0]+'  '+stockList[stock][1], df_short, trade_history, pngName)
+		draw.draw()
+		break
+		
 main()

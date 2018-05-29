@@ -5,16 +5,8 @@ import numpy as np
 import pandas as pd
 import requests
 from io import StringIO
+from utility import *
 import time
-
-def readStockList(fname):
-	_stock = dict()
-	f = open(fname, mode='r', encoding="utf-8")
-	for line in f:
-		w = line.replace('\n', '').split(',')
-		_stock[w[0]] = (w[0], w[1])
-	f.close()
-	return _stock	
 
 
 def monthly_report(year, month):

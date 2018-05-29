@@ -4,16 +4,8 @@ from __future__ import print_function
 import numpy as np
 import pandas as pd
 from googlefinance.client import get_price_data, get_prices_data, get_prices_time_data
+from utility import *
 
-
-def readStockList(fname):
-	_stock = dict()
-	f = open(fname, mode='r', encoding="utf-8")
-	for line in f:
-		w = line.replace('\n', '').split(',')
-		_stock[w[0]] = (w[0], w[1])
-	f.close()
-	return _stock	
 
 
 def get_history(stock, period):
