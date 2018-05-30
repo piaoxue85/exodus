@@ -23,7 +23,7 @@ def writeStockList(fname, stockDict):
 		f.write('{},{}\n'.format(id, name))
 	f.close()
 	
-def readStockHistory(stock):
+def readStockHistory(stock, period):
 	try:
 		df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
 	except:
@@ -42,8 +42,14 @@ def readStockHistory(stock):
 							}, inplace=True)
 		
 	df_main['k'], df_main['d'] = talib.STOCH(df_main['high'], df_main['low'], df_main['close'], fastk_period=9)
-	df_main['RSI'] =  talib.RSI(df_main['close'], timeperiod=10)
+	df_main['RSI'] = talib.RSI(df_main['close'], timeperiod=10)
+	df_main['macd'], df_main['macdsignal'], df_main['macdhist'] = talib.MACD(df_main['close'])
+	df_main['SMA'] = talib.SMA(df_main['close'])
+	df_main['BIAS'] = ((df_main['close']-df_main['SMA'])/df_main['close']) * 100
 	df_main = df_main.dropna()
+	total = len(df_main)
+	if (total > period):
+		df_main = df_main[total-period:]	
 	df_main.reset_index(drop=True, inplace=True)
 	
 	return False, df_main

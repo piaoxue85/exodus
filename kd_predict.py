@@ -198,6 +198,35 @@ class kd_draw(object):
 		
 		plt.draw()
 
+	def draw_basic(self, ax1, ax1_1):
+		# set ax1 y lim by close		
+		ymin = np.min(self.df['close'])
+		ymax = np.max(self.df['close'])
+		ax1.set_ylim(ymin, ymax)
+		# set xlim by date
+		ax1.set_xlim(self.df['Date'].loc[0], self.df['Date'].loc[len(self.df['Date'])-1])
+		ax1_orig_xlim = ax1.get_xlim()
+		# plot the close value
+		ax1.plot(self.df['Date'], self.df['close'])
+		# draw grid
+		ax1.grid()		
+		
+		# set ax1_1 y lim by volume
+		ymin = np.min(self.df['volume'])
+		ymax = np.max(self.df['volume'])
+		ax1_1.set_ylim(ymin, ymax)
+		# set y label for ax1_1
+		ax1_1.set_ylabel('Vol')
+		# plot the volume value
+		ax1_1.plot(self.df['Date'], self.df['volume'], 'C1', label='Vol')
+		# draw grid
+		ax1_1.grid(color='C1', linestyle='-', linewidth=0.5)		
+
+		# ask matplotlib for the plotted objects and their labels
+		lines, labels = ax1.get_legend_handles_labels()
+		lines2, labels2 = ax1_1.get_legend_handles_labels()
+		ax1_1.legend(lines + lines2, labels + labels2, loc='upper left')			
+		
 	def draw(self):
 		
 		self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, sharex=True)
@@ -303,7 +332,56 @@ class kd_draw(object):
 			plt.show()		
 		else:
 			plt.savefig(self.pngName)
+			
+			
+	def draw_ta(self, type, pngName):
+		self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, sharex=True)
+		self.ax1_1 = self.ax1.twinx()
+		
+		# set figure 
+		self.fig.suptitle(self.title + '   ' + type)
+		self.fig.autofmt_xdate(rotation=30)
+		
+		# for x-axis tick label
+		xtick_locator = AutoDateLocator()
+		xtick_formatter = AutoDateFormatter(xtick_locator)
+		self.ax1.xaxis.set_major_locator(xtick_locator)
+		self.ax1.xaxis.set_major_formatter(xtick_formatter)
+		self.draw_basic(self.ax1, self.ax1_1)
+		
+		if type == 'KD':
+			# plot the KD
+			self.ax2_lines = dict()
+			self.ax2_lines['k'] = self.ax2.plot(self.df['Date'], self.df['k'])[0]
+			self.ax2_lines['d'] = self.ax2.plot(self.df['Date'], self.df['d'])[0]
+			# plot RSI		
+			self.ax2_lines['RSI'] = self.ax2.plot(self.df['Date'], self.df['RSI'])[0]
+			self.ax2_lines['RSI'].set_linewidth(0.3)
+			self.ax2.legend(['K', 'D', 'RSI'], loc='upper left')	
 
+		if type == 'SMA':
+			# plot the SMA
+			self.ax2_lines = dict()
+			self.ax2_lines['SMA'] = self.ax2.plot(self.df['Date'], self.df['SMA'])[0]
+
+		if type == 'BIAS':
+			# plot the BIAS
+			self.ax2_lines = dict()
+			self.ax2_lines['BIAS'] = self.ax2.plot(self.df['Date'], self.df['BIAS'])[0]
+
+		if type == 'MACD':
+			# plot the MACD
+			self.ax2_lines = dict()
+			self.ax2_lines['macd'] = self.ax2.plot(self.df['Date'], self.df['macd'])[0]
+			self.ax2_lines['macdsignal'] = self.ax2.plot(self.df['Date'], self.df['macdsignal'])[0]
+			self.ax2_lines['macdhist'] = self.ax2.plot(self.df['Date'], self.df['macdhist'])[0]
+			self.ax2.legend(['MACD', 'Signal', 'HIST'], loc='upper left')	
+
+		if pngName == None:
+			plt.show()		
+		else:
+			plt.savefig(pngName)
+			
 class ta_predict():
 	def __init__(self, df):
 		self.df = df
@@ -446,8 +524,6 @@ class ta_predict():
 			yesterday = today
 		return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])
 
-	def draw():
-		self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, sharex=True)
 
 	def is_eligible(self, max=(80, 80, 75), min=(20, 25, 20)):
 		(sell_k, sell_d, sell_RSI) = max

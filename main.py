@@ -16,6 +16,8 @@ import datetime
 def main():
 
 	ap = argparse.ArgumentParser()
+	ap.add_argument("-f", "--file", required=False, default='focus.csv')
+	ap.add_argument("-p", "--period", required=False, default=200)
 	ap.add_argument("-i", "--initial", required=False, default=1000)
 	ap.add_argument("-v", "--visualize", required=False, default=False, action='store_true')
 	ap.add_argument("-d", "--debug", required=False, default=False, action='store_true')
@@ -23,14 +25,14 @@ def main():
 
 	pd.options.display.float_format = '{:.2f}'.format
 
-	stockList = readStockList('all_stock.csv')
+	stockList = readStockList(args['file'])
 	initial_cash = args['initial']
-	
+	period = args['period']
 	now = datetime.datetime.now()
 
 	for stock in stockList:
 		initial_cash = args['initial']
-		empty, df_main = readStockHistory(stock)
+		empty, df_main = readStockHistory(stock, period)
 		if empty == True:
 			continue
 
@@ -48,7 +50,8 @@ def main():
 		final_return = ta_p0['Total'].tail(1).values[0]
 		max_return = ta_p0['Total'].loc[max_return_idx]
 		min_return = ta_p0['Total'].loc[min_return_idx]
-		print('========= p0 on {}, initial = {:.2f}'.format(stock, args['initial']))
+		(stock_id, stock_name) = stockList[stock]
+		print('========= p0 on {} {}, initial = {:.2f}'.format(stock_id, stock_name, args['initial']))
 		print('final earn {:.2f}({:.2f}%)'.format(final_return, (final_return*100)/initial_cash))
 		print('max earn {:.2f}({:.2f}%) on {}'.format(max_return, (max_return*100)/initial_cash, ta_p0['Date'].loc[max_return_idx]))
 		print('min earn {:.2f}({:.2f}%) on {}'.format(min_return, (min_return*100)/initial_cash, ta_p0['Date'].loc[min_return_idx]))
@@ -63,16 +66,25 @@ def main():
 		trade_history = [('ta_p0', ta_p0)]
 		pngName = 'figures/{}_{}{:02d}{:02d}.png'.format(stock, now.year, now.month, now.day)
 		#pngName = None
-		draw = kd_draw(stockList[stock][0]+'  '+stockList[stock][1], df_main, trade_history, pngName)
+		draw = kd_draw(stock_id+'  '+stock_name, df_main, trade_history, pngName)
 		draw.draw()
-		df_short = df_main.tail(200)
+		pngName = 'figures/{}_{}{:02d}{:02d}_KD.png'.format(stock, now.year, now.month, now.day)
+		draw.draw_ta('KD', pngName)
+		pngName = 'figures/{}_{}{:02d}{:02d}_MACD.png'.format(stock, now.year, now.month, now.day)
+		draw.draw_ta('MACD', pngName)
+		pngName = 'figures/{}_{}{:02d}{:02d}_SMA.png'.format(stock, now.year, now.month, now.day)
+		draw.draw_ta('SMA', pngName)
+		pngName = 'figures/{}_{}{:02d}{:02d}_BIAS.png'.format(stock, now.year, now.month, now.day)
+		draw.draw_ta('BIAS', pngName)
+		
+		df_short = df_main.tail(20)
 		df_short.reset_index(drop=True, inplace=True)
-		ta_p0_short = ta_p0.tail(200)
+		ta_p0_short = ta_p0.tail(20)
 		ta_p0_short.reset_index(drop=True, inplace=True)
 		trade_history = [('ta_p0', ta_p0_short)]
 		pngName = 'figures/{}_{}{:02d}{:02d}_01.png'.format(stock, now.year, now.month, now.day)
-		draw = kd_draw(stockList[stock][0]+'  '+stockList[stock][1], df_short, trade_history, pngName)
+		draw = kd_draw(stock_id+'  '+stock_name, df_short, trade_history, pngName)
 		draw.draw()
+
 		break
-		
 main()

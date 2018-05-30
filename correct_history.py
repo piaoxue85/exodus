@@ -19,28 +19,34 @@ def get_history(stock, period):
 
 	df = get_price_data(param)
 	return df
+	
+#def correct_history(stock):
+#	df['
 
 def main():
 	stocDict = readStockList('all_stock.csv')
 	print('stocDict = ', stocDict)
+	
 	nonExistList = []
 	for stock in stocDict:
 		
-		df = get_history(stock, '5Y')
+		#df = get_history(stock, '5Y')
 		#if stock == '2454':
 		#	df['Volume'].at['2015-12-28 13:30:00'] = 2643993
 		#if stock == '2448':
-		print('Get {}'.format(stock))
+		df = pd.read_csv('history/'+stock+'.csv')
+		
 		try:
-			df['Volume'].at['2015-12-28 13:30:00'] = df['Volume'].loc['2015-12-28 13:30:00']/10
+			idx = df[df['Date']=='2015-12-28 13:30:00'].index[0]
+			df['Volume'].at[idx] = df['Volume'].loc[idx]/100
+			print('update {}\n'.format(stock))
 		except:
-			nonExistList = []
-			print('2015-12-28 13:30:00 not exist')
-		df['Date'] = df.index
-		df.reset_index()
-		print(df.to_csv('history/'+stock+'.csv'))
+			nonExistList.append(stock)
+			#print('{} no 2015-12-28'.format(stock))
+		df.to_csv('history.new/'+stock+'.csv')
 		
 	for to_del in nonExistList:
+		print('delete dead {}'.format(to_del))
 		del stocDict[to_del]
 	writeStockList('all_stock_new.csv', stocDict)
 main()
