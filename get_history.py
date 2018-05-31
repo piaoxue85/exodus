@@ -3,44 +3,47 @@ from __future__ import print_function
 
 import numpy as np
 import pandas as pd
-from googlefinance.client import get_price_data, get_prices_data, get_prices_time_data
+import argparse
 from utility import *
 
 
 
-def get_history(stock, period):
-	param = {
-	    'q': stock, 		# Stock symbol (ex: "AAPL")
-	    'i': "86400", 		# Interval size in seconds ("86400" = 1 day intervals)
-	    #'i': "300", 		# Interval size in seconds ("86400" = 1 day intervals)
-	    'x': "TPE", 		# Stock exchange symbol on which stock is traded (ex: "NASD")
-	    'p': period 			# Period (Ex: "1Y" = 1 year)
-	}
-
-	df = get_price_data(param)
-	return df
 
 def main():
+
+	ap = argparse.ArgumentParser()
+	ap.add_argument("-d", "--data", required=False, default='all')
+	ap.add_argument("-p", "--period", required='1d', default=200)
+	ap.add_argument("-a", "--append", required=False, default=True)
+	args = vars(ap.parse_args())	
+	
 	stocDict = readStockList('all_stock.csv')
 	print('stocDict = ', stocDict)
-	nonExistList = []
-	for stock in stocDict:
-		
-		df = get_history(stock, '5Y')
-		#if stock == '2454':
-		#	df['Volume'].at['2015-12-28 13:30:00'] = 2643993
-		#if stock == '2448':
-		print('Get {}'.format(stock))
-		try:
-			df['Volume'].at['2015-12-28 13:30:00'] = df['Volume'].loc['2015-12-28 13:30:00']/10
-		except:
-			nonExistList = []
-			print('2015-12-28 13:30:00 not exist')
-		df['Date'] = df.index
-		df.reset_index()
-		print(df.to_csv('history/'+stock+'.csv'))
-		
-	for to_del in nonExistList:
-		del stocDict[to_del]
-	writeStockList('all_stock_new.csv', stocDict)
+	dtype = args['data']
+	period = args['period']
+	append = args['append']
+
+	if dtype == 'all' or dtype == 'price':
+		for stock in stocDict:
+			
+			df = update_stock_history(stock, period)
+			print('Get {} stock price'.format(stock))
+			if period == '5Y':
+				try:
+					df['Volume'].at['2015-12-28 13:30:00'] = df['Volume'].loc['2015-12-28 13:30:00']/10
+				except:
+					print('2015-12-28 13:30:00 no exist')				
+			df['Date'] = df.index
+			df.reset_index()
+			if append == True:
+				_text = df.to_csv(header=False)
+				f = open('history/'+stock+'.csv', mode='a', encoding="utf-8")
+				f.write(_text)
+				f.close()
+			else:
+				df.to_csv('history/'+stock+'.csv')
+
+	if dtype == 'all' or dtype == 'eps':
+		update_daily_eps_period(period)
+
 main()

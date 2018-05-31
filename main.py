@@ -32,7 +32,7 @@ def main():
 
 	for stock in stockList:
 		initial_cash = args['initial']
-		empty, df_main = readStockHistory(stock, period)
+		empty, df_main = readStockHistory(stock, period, raw=False)
 		if empty == True:
 			continue
 
