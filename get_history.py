@@ -12,14 +12,19 @@ from utility import *
 def main():
 
 	ap = argparse.ArgumentParser()
-	ap.add_argument("-d", "--data", required=False, default='all')
+	ap.add_argument("-t", "--type", required=False, default='all')
+	ap.add_argument("-s", "--start", required=False, default='today')
 	ap.add_argument("-p", "--period", required='1d', default=200)
 	ap.add_argument("-a", "--append", required=False, default=True)
 	args = vars(ap.parse_args())	
 	
 	stocDict = readStockList('all_stock.csv')
 	print('stocDict = ', stocDict)
-	dtype = args['data']
+	dtype = args['type']
+	if args['start'] != 'today':
+		startDate = date(int(args['start'].split('-')[0]), int(args['start'].split('-')[1]), int(args['start'].split('-')[2]))
+	else:
+		startDate = date.today()
 	period = args['period']
 	append = args['append']
 
@@ -44,6 +49,6 @@ def main():
 				df.to_csv('history/'+stock+'.csv')
 
 	if dtype == 'all' or dtype == 'eps':
-		update_daily_eps_period(period)
+		update_daily_eps_period(startDate, period)
 
 main()

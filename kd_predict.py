@@ -38,6 +38,9 @@ class kd_draw(object):
 
 		return
 		
+	def __del__(self):
+		print('delete draw')
+		plt.close('all')
 		
 	def redraw(self, xdata, ydata):
 		v = np.argmin(np.absolute(date2num(self.x_df)-xdata))

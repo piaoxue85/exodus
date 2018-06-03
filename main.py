@@ -17,7 +17,7 @@ def main():
 
 	ap = argparse.ArgumentParser()
 	ap.add_argument("-f", "--file", required=False, default='focus.csv')
-	ap.add_argument("-p", "--period", required=False, default=200)
+	ap.add_argument("-p", "--period", type=int, required=False, default=200)
 	ap.add_argument("-i", "--initial", required=False, default=1000)
 	ap.add_argument("-v", "--visualize", required=False, default=False, action='store_true')
 	ap.add_argument("-d", "--debug", required=False, default=False, action='store_true')
@@ -86,5 +86,6 @@ def main():
 		draw = kd_draw(stock_id+'  '+stock_name, df_short, trade_history, pngName)
 		draw.draw()
 
-		break
+		del draw
+		#break
 main()

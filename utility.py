@@ -7,16 +7,24 @@ from collections import OrderedDict
 import requests
 from io import StringIO
 from datetime import date, datetime, timedelta
+import time
 from googlefinance.client import get_price_data, get_prices_data, get_prices_time_data
 
 def tanh_norm(x):
 	u = np.mean(x)
 	o = np.std(x)
 	
-	r = 0.01*(x-u)
+	r = 0.01*(x.values-u)
 	r = r/o+1
 	r = 0.5*np.tanh(r)
+	r = pd.Series(r, x.index)
 	return r
+	
+def min_max_norm(scaler, df_data):
+	_data = np.reshape(df_data.values, (-1, 1))
+	_data = scaler.fit_transform(_data)
+	_data = np.reshape(_data, (1, -1))
+	return pd.Series(_data[0], df_data.index)
 
 def readStockList(fname):
 	_stock = OrderedDict()
@@ -62,28 +70,29 @@ def daterange(start_date, end_date):
 	for n in range(int ((end_date - start_date).days)):
 		yield start_date + timedelta(n)
 
-def update_daily_eps_period(period):
+def update_daily_eps_period(startDate, period):
 	years = 0
 	months = 0
 	days = 0
-	today = date.today()
+	endDate = startDate
 	if 'Y' in period:
 		years = int(period.rstrip('Y'))
-		start_date = today.replace(year=today.year - years)
+		endDate = endDate.replace(year=endDate.year + years)
 	if 'M' in period:
 		months = int(period.rstrip('M'))
-		if (months < today.month):
-			start_date = today.replace(month=today.month - months)
-		else:
-			start_date = today.replace(year=today.year - 1, month=12-(months-today.month))
+		years = endDate.year+int((months + endDate.month) / 12)
+		months = (months + endDate.month) % 12 
+		endDate = endDate.replace(month=months)
+		endDate = endDate.replace(year=years)
 	if 'd' in period:
 		days = int(period.rstrip('d'))
-		start_date = datetime.today() - timedelta(days=days)
+		endDate = endDate + timedelta(days=days)
 
-	for single_date in daterange(start_date, today):
+	for single_date in daterange(startDate, endDate):
 		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
 		print('update ', datestr)
 		update_daily_eps(single_date.year, single_date.month, single_date.day)
+		time.sleep(10)
 		#print(datestr)
 	#r = requests.post('http://www.twse.com.tw/exchangeReport/MI_INDEX?response=csv&date=' + datestr + '&type=ALL')
 	#df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
@@ -145,11 +154,13 @@ def readStockHistory(stock, period, raw=True):
 	df_main = df_main.dropna()
 	df_main['Date'] = pd.to_datetime(df_main.Date)
 	df_main['DateStr'] = df_main['Date'].dt.strftime('%Y-%m-%d')
-	df_main['Volume'] = df_main['Volume'] / 1000
-	df_main.rename(columns={'Open': 'open', 'Close': 'close', \
+	
+	if 'Open' in df_main.columns.values:
+		df_main['Volume'] = df_main['Volume'] / 1000
+		df_main.rename(columns={'Open': 'open', 'Close': 'close', \
 							'High': 'high', 'Low': 'low', 'Volume': 'volume'
 							}, inplace=True)
-
+		
 	if raw == False:
 		df_main['k'], df_main['d'] = talib.STOCH(df_main['high'], df_main['low'], df_main['close'], fastk_period=9)
 		df_main['RSI'] = talib.RSI(df_main['close'], timeperiod=10)

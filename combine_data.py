@@ -16,7 +16,6 @@ def main():
 
 	stockList = readStockList(args['file'])
 	for stock in stockList:
-		stock = '1101'
 		empty, df_main = readStockHistory(stock, 9999, raw=True)
 		if empty == True:
 			continue
@@ -31,6 +30,6 @@ def main():
 			df_main['revenue'].at[index] = revenue
 		print('Combin {}'.format(stock))
 		df_main.to_csv('history_combine/'+stock+'.csv')
-		break
+		#break
 	#print(df_main)
 main()
