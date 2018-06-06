@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.ticker import Formatter
 from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
-from kd_predict import *
 
 
-class kd_draw(object):
+class ta_draw(object):
 
 	def __init__(self, title, df, th, pngName=None):
 		#matplotlib.rc('font', family='Arial')

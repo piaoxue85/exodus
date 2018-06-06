@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 import pandas as pd
-from kd_predict import *
+from ta_predict import *
 from collections import OrderedDict
 import requests
 from io import StringIO
@@ -170,7 +170,8 @@ def readStockHistory(stock, period, raw=True):
 	if 'eps' not in df_main.columns.values.tolist():
 		df_main['eps'] = pd.Series([float(0)]*len(df_main), df_main.index)		
 	if 'revenue' not in df_main.columns.values.tolist():
-		df_main['revenue'] = pd.Series([float(0)]*len(df_main), df_main.index)		
+		df_main['revenue'] = pd.Series([float(0)]*len(df_main), df_main.index)
+	df_main['pe'] = 	df_main['close'] / df_main['eps']
 	df_main = df_main.dropna()
 	total = len(df_main)
 	if (total > period):
@@ -217,4 +218,40 @@ def update_monthly_report(year, month):
 	
 	# 偽停頓
 	time.sleep(30)
-	return df	
+	return df
+
+def financial_statement(year, season, type='綜合損益彙總表'):
+	if year >= 1000:
+		year -= 1911
+
+	if type == '綜合損益彙總表':
+		url = 'http://mops.twse.com.tw/mops/web/ajax_t163sb04'
+	elif type == '資產負債彙總表':
+		url = 'http://mops.twse.com.tw/mops/web/ajax_t163sb05'
+	elif type == '營益分析彙總表':
+		url = 'http://mops.twse.com.tw/mops/web/ajax_t163sb06'
+	else:
+		print('type does not match')
+	
+	r = requests.post(url, {
+					'encodeURIComponent':1,
+					'step':1,
+					'firstin':1,
+					'off':1,
+					'TYPEK':'sii',
+					'year':str(year),
+					'season':str(season),
+					})
+
+	r.encoding = 'utf8'
+	dfs = pd.read_html(r.text)
+
+
+	for i, df in enumerate(dfs):
+		df.columns = df.iloc[0]
+		dfs[i] = df.iloc[1:]
+
+	df = pd.concat(dfs).applymap(lambda x: x if x != '--' else np.nan)
+	df = df[df['公司代號'] != '公司代號']
+	df = df[~df['公司代號'].isnull()]
+	return df

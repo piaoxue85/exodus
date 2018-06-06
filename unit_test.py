@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import Formatter
 from talib.abstract import *
 from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
-from kd_predict import *
+from ta_predict import *
 from utility import *
 import talib
 import argparse
@@ -21,5 +21,10 @@ def main():
 	#stockList = readStockList('all_stock.csv')
 	#for stock in stockList:
 	#	print(stock)
-	
+	df = financial_statement(2018, 1, '綜合損益彙總表')
+	print(df)
+	df = financial_statement(2018, 1, '資產負債彙總表')
+	print(df)
+	df = financial_statement(2018, 1, '營益分析彙總表')
+	print(df)
 main()

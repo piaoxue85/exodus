@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import Formatter
 from talib.abstract import *
 from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
-from kd_predict import *
+from ta_predict import *
 from utility import *
 import talib
 import argparse
@@ -66,7 +66,7 @@ def main():
 		trade_history = [('ta_p0', ta_p0)]
 		pngName = 'figures/{}_{}{:02d}{:02d}.png'.format(stock, now.year, now.month, now.day)
 		#pngName = None
-		draw = kd_draw(stock_id+'  '+stock_name, df_main, trade_history, pngName)
+		draw = ta_draw(stock_id+'  '+stock_name, df_main, trade_history, pngName)
 		draw.draw()
 		pngName = 'figures/{}_{}{:02d}{:02d}_KD.png'.format(stock, now.year, now.month, now.day)
 		draw.draw_ta('KD', pngName)
@@ -83,9 +83,9 @@ def main():
 		ta_p0_short.reset_index(drop=True, inplace=True)
 		trade_history = [('ta_p0', ta_p0_short)]
 		pngName = 'figures/{}_{}{:02d}{:02d}_01.png'.format(stock, now.year, now.month, now.day)
-		draw = kd_draw(stock_id+'  '+stock_name, df_short, trade_history, pngName)
+		draw = ta_draw(stock_id+'  '+stock_name, df_short, trade_history, pngName)
 		draw.draw()
 
 		del draw
-		#break
+		break
 main()
