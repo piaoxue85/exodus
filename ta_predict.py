@@ -527,7 +527,11 @@ class ta_predict():
 		return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])
 
 
-	def is_eligible(self, max=(80, 80, 75), min=(20, 25, 20)):
+	def is_eligible(self, conditions):
+
+		
+
+		
 		(sell_k, sell_d, sell_RSI) = max
 		(buy_k, buy_d, buy_RSI) = min
 		
@@ -546,3 +550,5 @@ class ta_predict():
 			return 'WATCH current {}, median {}'.format(currentVol, vol_median)
 			
 		return 'Nothing'
+
+

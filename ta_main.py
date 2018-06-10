@@ -16,7 +16,7 @@ import datetime
 def main():
 
 	ap = argparse.ArgumentParser()
-	ap.add_argument("-f", "--file", required=False, default='focus.csv')
+	ap.add_argument("-f", "--file", required=False, default='all_stock.csv')
 	ap.add_argument("-p", "--period", type=int, required=False, default=200)
 	ap.add_argument("-i", "--initial", required=False, default=1000)
 	ap.add_argument("-v", "--visualize", required=False, default=False, action='store_true')
@@ -26,14 +26,24 @@ def main():
 	pd.options.display.float_format = '{:.2f}'.format
 
 	stockList = readStockList(args['file'])
+
+	df_ROE=readROEHistory('ROE_2006_2017.csv', avg_min=0, std_max=70)
+	stockROEList = df_ROE['stock'].values
+
 	initial_cash = args['initial']
 	period = args['period']
 	now = datetime.datetime.now()
 
 	for stock in stockList:
+
+		if stock not in stockROEList:
+			print('skip ', stock)
+			continue
+		print('process ', stock)
 		initial_cash = args['initial']
 		empty, df_main = readStockHistory(stock, period, raw=False)
 		if empty == True:
+			print('no data')
 			continue
 
 		predict = ta_predict(df_main)
@@ -87,5 +97,5 @@ def main():
 		draw.draw()
 
 		del draw
-		break
+		#break
 main()

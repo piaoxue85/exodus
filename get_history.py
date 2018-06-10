@@ -28,7 +28,8 @@ def main():
 	period = args['period']
 	append = args['append']
 
-	if dtype == 'all' or dtype == 'price':
+	#if dtype == 'all' or dtype == 'price':
+	if False:
 		for stock in stocDict:
 			
 			df = update_stock_history(stock, period)

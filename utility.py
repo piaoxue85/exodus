@@ -7,7 +7,9 @@ from collections import OrderedDict
 import requests
 from io import StringIO
 from datetime import date, datetime, timedelta
+import datetime as dt
 import time
+import os
 from googlefinance.client import get_price_data, get_prices_data, get_prices_time_data
 
 def tanh_norm(x):
@@ -56,21 +58,24 @@ def update_stock_history(stock, period):
 	df = get_price_data(param)
 	return df
 
-def update_daily_eps(year, month, day):
+def update_daily_per(year, month, day, writFile=False):
 	datestr = '{}{:02d}{:02d}'.format(year, month, day)
 	try:
 		r = requests.post('http://www.twse.com.tw/exchangeReport/MI_INDEX?response=csv&date=' + datestr + '&type=ALL')
 		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
 						for i in r.text.split('\n') if len(i.split('",')) == 17 and i[0] != '='])), header=0)
-		df.to_csv('history/eps/'+datestr+'.csv')
+		if writFile == True:
+			df.to_csv('history/per/'+datestr+'.csv')
+		return (True, df)
 	except:
 		print('unable to get ', datestr)
+		return (False, None)
 
 def daterange(start_date, end_date):
 	for n in range(int ((end_date - start_date).days)):
 		yield start_date + timedelta(n)
 
-def update_daily_eps_period(startDate, period):
+def update_daily_per_period(startDate, period):
 	years = 0
 	months = 0
 	days = 0
@@ -91,28 +96,91 @@ def update_daily_eps_period(startDate, period):
 	for single_date in daterange(startDate, endDate):
 		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
 		print('update ', datestr)
-		update_daily_eps(single_date.year, single_date.month, single_date.day)
+		update_daily_per(single_date.year, single_date.month, single_date.day, writFile=True)
 		time.sleep(10)
 		#print(datestr)
 	#r = requests.post('http://www.twse.com.tw/exchangeReport/MI_INDEX?response=csv&date=' + datestr + '&type=ALL')
 	#df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
 					#for i in r.text.split('\n') if len(i.split('",')) == 17 and i[0] != '='])), header=0)
-	#df.to_csv('history/eps/'+datestr+'.csv')
+	#df.to_csv('history/per/'+datestr+'.csv')
+
+def update_daily(startDate, period):
+	years = 0
+	months = 0
+	days = 0
+	endDate = startDate
+	if 'Y' in period:
+		years = int(period.rstrip('Y'))
+		endDate = endDate.replace(year=endDate.year + years)
+	if 'M' in period:
+		months = int(period.rstrip('M'))
+		years = endDate.year+int((months + endDate.month) / 12)
+		months = (months + endDate.month) % 12 
+		endDate = endDate.replace(month=months)
+		endDate = endDate.replace(year=years)
+	if 'd' in period:
+		days = int(period.rstrip('d'))
+		endDate = endDate + timedelta(days=days)
+
+	for single_date in daterange(startDate, endDate):
+		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
+		print('update ', datestr)
+		(got_data, df) = update_daily_per(single_date.year, single_date.month, single_date.day, writFile=False)
+		if got_data == False:
+			continue
+		for index, row in df.iterrows():
+			stock = row['證券代號']
+			path = 'history/'+row['證券代號']+'.csv'
+			if os.path.exists(path) == False:
+				print('		no {} history file'.format(path))
+				continue
+			#f = open(fname, mode='a', encoding="utf-8")
+			try:
+				df_stock = pd.read_csv(path)
+				mydatetime = datetime.combine(single_date, dt.time(13,30))
+				revenue = get_monthly_revenus(stock, single_date.year, single_date.month)
+				volume = float(row['成交股數'].replace(',', ''))
+				PER = float(row['本益比'])
+				_open = float(row['開盤價'])
+				_close = float(row['收盤價'])
+				high = float(row['最高價'])
+				low = float(row['最低價'])
+				dateStr = mydatetime.strftime('%Y-%m-%d')
+				new_sample = '{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
+												_open, high, low, _close, volume, 
+												mydatetime,
+												dateStr,
+												0,
+												revenue,
+												PER)
+				if len(df_stock[df_stock['DateStr'] == dateStr]) > 0:
+					print('		skip overwrite')
+				else:
+					print('		update ', stock, new_sample)
+					f = open(path, mode='a', encoding="utf-8")
+					f.write(new_sample)
+					f.close()
+
+			except:
+				print('		data error', stock)
+		time.sleep(10)
 		
-def get_daily_eps(stock, year, month, day):
-	datestr = '{}{:02d}{:2d}'.format(year, month, day)
+def get_daily_per(stock, year, month, day):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
 	try:
-		df = pd.read_csv('history/'+datestr+'_eps.csv')
+	#if True:
+		df = pd.read_csv('history/per/'+datestr+'.csv')
 		if df.empty == True:
 			return 0
 		
-		df.rename(columns={'本益比': 'eps', '證券代號': 'stock'}, inplace=True)					
+		df.rename(columns={'本益比': 'PER', '證券代號': 'stock'}, inplace=True)					
 		df['stock'] = df['stock'].astype(str)
 
-		eps = df['eps'].loc[df['stock']==stock]
-		eps = float(eps.values[0])
-		return eps
+		per = df['PER'].loc[df['stock']==stock]
+		per = float(per.values[0])
+		return per
 	except:
+		print('Can not get {} {}'.format(stock, datestr))
 		return 0
 		
 _last_read_revenue_date = None		
@@ -171,7 +239,8 @@ def readStockHistory(stock, period, raw=True):
 		df_main['eps'] = pd.Series([float(0)]*len(df_main), df_main.index)		
 	if 'revenue' not in df_main.columns.values.tolist():
 		df_main['revenue'] = pd.Series([float(0)]*len(df_main), df_main.index)
-	df_main['pe'] = 	df_main['close'] / df_main['eps']
+	if 'PER' not in df_main.columns.values.tolist():
+		df_main['PER'] = pd.Series([float(0)]*len(df_main), df_main.index)
 	df_main = df_main.dropna()
 	total = len(df_main)
 	if (total > period):
@@ -254,4 +323,39 @@ def financial_statement(year, season, type='綜合損益彙總表'):
 	df = pd.concat(dfs).applymap(lambda x: x if x != '--' else np.nan)
 	df = df[df['公司代號'] != '公司代號']
 	df = df[~df['公司代號'].isnull()]
+	return df
+
+def readROEHistory(fname, avg_min=0, std_max=100):
+	df = pd.read_csv('history/'+fname, delim_whitespace=False, header=0)
+	df.rename(columns={'排名': 'ranking', '代號': 'stock', \
+							'名稱': 'name', 
+							'平均ROE(%)': 'avg_ROE', 
+							'2006ROE(%)': '2006ROE',
+							'2007ROE(%)': '2007ROE',
+							'2008ROE(%)': '2008ROE',
+							'2009ROE(%)': '2009ROE',
+							'2010ROE(%)': '2010ROE',
+							'2011ROE(%)': '2011ROE',
+							'2012ROE(%)': '2012ROE',
+							'2013ROE(%)': '2013ROE',
+							'2014ROE(%)': '2014ROE',
+							'2015ROE(%)': '2015ROE',
+							'2016ROE(%)': '2016ROE',
+							'2017ROE(%)': '2017ROE',
+							}, inplace=True)
+
+	df=df.drop(columns=[u'成交', u'漲跌價', u'漲跌幅', u'18Q1ROE(%)'])
+	df['std_ROE']=df.std(axis=1, ddof=0)
+	#print(df)
+	
+	df=df.sort_values(by=['avg_ROE'], ascending=False)
+	df=df[df['avg_ROE']>avg_min]
+	df=df[df['std_ROE']<std_max]
+	df.reset_index(inplace=True)
+	df=df[['stock', 'name', 'ranking', 'avg_ROE', 'std_ROE', \
+					'2017ROE', '2016ROE', '2015ROE', '2014ROE', '2013ROE', \
+					'2012ROE', '2011ROE', '2010ROE', '2009ROE', '2008ROE', \
+					'2007ROE', '2006ROE']]
+	df['stock']=df['stock'].str.replace('=', '')
+	df['stock']=df['stock'].str.replace('"', '')
 	return df
