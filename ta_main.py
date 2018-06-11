@@ -17,6 +17,7 @@ def main():
 
 	ap = argparse.ArgumentParser()
 	ap.add_argument("-f", "--file", required=False, default='all_stock.csv')
+	ap.add_argument("-s", "--stock", required=False, default='')
 	ap.add_argument("-p", "--period", type=int, required=False, default=200)
 	ap.add_argument("-i", "--initial", required=False, default=1000)
 	ap.add_argument("-v", "--visualize", required=False, default=False, action='store_true')
@@ -26,6 +27,10 @@ def main():
 	pd.options.display.float_format = '{:.2f}'.format
 
 	stockList = readStockList(args['file'])
+	if (args['stock'] != ''):
+		stockList = OrderedDict()
+		stockList[args['stock']] = (args['stock'], '華晶科')
+		#stockList = [(args['stock'], '華晶科')]
 
 	df_ROE=readROEHistory('ROE_2006_2017.csv', avg_min=0, std_max=70)
 	stockROEList = df_ROE['stock'].values
@@ -36,7 +41,7 @@ def main():
 
 	for stock in stockList:
 
-		if stock not in stockROEList:
+		if (stock not in stockROEList) and (args['stock'] == ''):
 			print('skip ', stock)
 			continue
 		print('process ', stock)

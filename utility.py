@@ -139,7 +139,7 @@ def update_daily(startDate, period):
 				df_stock = pd.read_csv(path)
 				mydatetime = datetime.combine(single_date, dt.time(13,30))
 				revenue = get_monthly_revenus(stock, single_date.year, single_date.month)
-				volume = float(row['成交股數'].replace(',', ''))
+				volume = float(row['成交股數'].replace(',', ''))/1000
 				PER = float(row['本益比'])
 				_open = float(row['開盤價'])
 				_close = float(row['收盤價'])
@@ -359,3 +359,88 @@ def readROEHistory(fname, avg_min=0, std_max=100):
 	df['stock']=df['stock'].str.replace('=', '')
 	df['stock']=df['stock'].str.replace('"', '')
 	return df
+	
+def readFinacialHistory():
+	divident_list = [	#'dividen_2006.csv', 
+						#'dividen_2007.csv',
+						#'dividen_2008.csv',
+						#'dividen_2009.csv',
+						#'dividen_2010.csv',
+						#'dividen_2011.csv',
+						#'dividen_2012.csv',
+						#'dividen_2013.csv',
+						#'dividen_2014.csv',
+						#'dividen_2015.csv',
+						#'dividen_2016.csv',
+						#'dividen_2017.csv',
+						#'dividen_2018.csv']
+						('finacial_2006.csv', '2006'),
+						('finacial_2007.csv', '2007'),
+						('finacial_2008.csv', '2008'),
+						('finacial_2009.csv', '2009'),
+						('finacial_2010.csv', '2010'),
+						('finacial_2011.csv', '2011'),
+						('finacial_2012.csv', '2012'),
+						('finacial_2013.csv', '2013'),
+						('finacial_2014.csv', '2014'),
+						('finacial_2015.csv', '2015'),
+						('finacial_2016.csv', '2016'),
+						('finacial_2017.csv', '2017'),
+						]
+						
+	df_finacial = pd.DataFrame(columns=[	'stock', 'name',
+								'div_2006_cash', 'div_2007_cash', 'div_2008_cash', 'div_2009_cash',
+								'div_2010_cash', 'div_2011_cash', 'div_2012_cash', 'div_2013_cash',
+								'div_2014_cash', 'div_2015_cash', 'div_2016_cash', 'div_2017_cash', 'div_2018_cash',
+								'div_2006_stock', 'div_2007_stock', 'div_2008_stock', 'div_2009_stock',
+								'div_2010_stock', 'div_2011_stock', 'div_2012_stock', 'div_2013_stock',
+								'div_2014_stock', 'div_2015_stock', 'div_2016_stock', 'div_2017_stock', 'div_2018_stock',
+								'div_2006_all', 'div_2007_all', 'div_2008_all', 'div_2009_all',
+								'div_2010_all', 'div_2011_all', 'div_2012_all', 'div_2013_all',
+								'div_2014_all', 'div_2015_all', 'div_2016_all', 'div_2017_all', 'div_2018_all',
+								'payout_ratio_2006', 'yield_2006', 
+								'payout_ratio_2007', 'yield_2007',
+								'payout_ratio_2008', 'yield_2008',
+								'payout_ratio_2009', 'yield_2009',
+								'payout_ratio_2010', 'yield_2010',
+								'payout_ratio_2011', 'yield_2011',
+								'payout_ratio_2012', 'yield_2012',
+								'payout_ratio_2013', 'yield_2013',
+								'payout_ratio_2014', 'yield_2014',
+								'payout_ratio_2015', 'yield_2015',
+								'payout_ratio_2016', 'yield_2016',
+								'payout_ratio_2017', 'yield_2017',])
+	for (f, _year) in divident_list:
+		df = pd.read_csv('history/'+f)
+		df['代號']=df['代號'].str.replace('=', '')
+		df['代號']=df['代號'].str.replace('"', '')	
+
+		df.rename(columns={'代號': 'stock', '名稱': 'name', '股利發放年度': 'year'}, inplace=True)		
+		for index, row in df.iterrows():
+			stock = row['stock']
+			name = row['name']
+			#year = row['year']
+			#if year == '-':
+			year = _year
+			div_cash = row['現金股利']
+			div_stock = row['股票股利']
+			div_all = row['合計股利']
+			_yield = row['合計殖利率']
+			_ratio = row['盈餘總分配率']			
+			print('stock = {} {} {}'.format(f, stock, year))
+			if stock not in df_finacial['stock']:
+				_new = pd.DataFrame([[stock, name]],columns=[	'stock', 'name'])
+				df_finacial = df_finacial.append(_new, ignore_index=True)
+			new_row = df_finacial.loc[df_finacial['stock']==stock]
+			new_row['div_2006']=100
+			if f == 'dividen_2018.csv':
+				year = '2018'
+			column = 'div_'+year
+
+			df_finacial['div_'+year+'_cash'].loc[df_finacial['stock']==stock] = div_cash
+			df_finacial['div_'+year+'_stock'].loc[df_finacial['stock']==stock] = div_stock
+			df_finacial['div_'+year+'_all'].loc[df_finacial['stock']==stock] = div_all
+			df_finacial['yield_'+year].loc[df_finacial['stock']==stock] = _yield
+			df_finacial['payout_ratio_'+year].loc[df_finacial['stock']==stock] = _ratio
+		#break
+	return df_finacial
