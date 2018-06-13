@@ -1,0 +1,71 @@
+{
+    "type": "TA",
+    "name": "TA0",
+    "initial": 1000,
+    "buy_tactic_num": 1,
+    "sell_tactic_num": 2,
+    "buy_tactics_0": 
+    {
+        "name": "KD_RSI",
+        "shares": 1,
+        "condition":
+        [
+            {
+                "index": "k",
+                "type": "absolute",
+                "min": 0.0,
+                "max": 20.0
+            },
+            {
+                "index": "d",
+                "type": "absolute",
+                "min": 0.0,
+                "max": 25.0
+            },
+            {
+                "index": "RSI",
+                "type": "absolute",
+                "min": 50.0,
+                "max": 100
+            }
+        ]
+    },
+    
+    "sell_tactics_0": 
+    {
+        "name": "K80D80",
+        "shares": 1,
+        "condition":
+        [
+            {
+                "index": "k",
+                "type": "absolute",
+                "min": 80.0,
+                "max": 100.0
+            },
+            {
+                "index": "d",
+                "type": "absolute",                
+                "min": 80.0,
+                "max": 100.0
+            }
+        ]
+    },
+    
+    "sell_tactics_1": 
+    {
+        "name": "Loss10%",
+        "shares": 99,
+        "condition":
+        [
+            {
+                "index": "close",
+                "type": "highest_diff_ratio",
+                "period": 20,
+                "min": -100.0,
+                "max": -10.0
+            }
+        ]
+    }
+    
+}

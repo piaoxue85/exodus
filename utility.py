@@ -224,7 +224,7 @@ def readStockHistory(stock, period, raw=True):
 	df_main['DateStr'] = df_main['Date'].dt.strftime('%Y-%m-%d')
 	
 	if 'Open' in df_main.columns.values:
-		df_main['Volume'] = df_main['Volume'] / 1000
+		#df_main['Volume'] = df_main['Volume'] / 1000
 		df_main.rename(columns={'Open': 'open', 'Close': 'close', \
 							'High': 'high', 'Low': 'low', 'Volume': 'volume'
 							}, inplace=True)
@@ -325,7 +325,7 @@ def financial_statement(year, season, type='綜合損益彙總表'):
 	df = df[~df['公司代號'].isnull()]
 	return df
 
-def readROEHistory(fname, avg_min=0, std_max=100):
+def readROEHistory(fname):
 	df = pd.read_csv('history/'+fname, delim_whitespace=False, header=0)
 	df.rename(columns={'排名': 'ranking', '代號': 'stock', \
 							'名稱': 'name', 
@@ -349,8 +349,6 @@ def readROEHistory(fname, avg_min=0, std_max=100):
 	#print(df)
 	
 	df=df.sort_values(by=['avg_ROE'], ascending=False)
-	df=df[df['avg_ROE']>avg_min]
-	df=df[df['std_ROE']<std_max]
 	df.reset_index(inplace=True)
 	df=df[['stock', 'name', 'ranking', 'avg_ROE', 'std_ROE', \
 					'2017ROE', '2016ROE', '2015ROE', '2014ROE', '2013ROE', \
@@ -360,33 +358,33 @@ def readROEHistory(fname, avg_min=0, std_max=100):
 	df['stock']=df['stock'].str.replace('"', '')
 	return df
 	
-def readFinacialHistory():
-	divident_list = [	#'dividen_2006.csv', 
-						#'dividen_2007.csv',
-						#'dividen_2008.csv',
-						#'dividen_2009.csv',
-						#'dividen_2010.csv',
-						#'dividen_2011.csv',
-						#'dividen_2012.csv',
-						#'dividen_2013.csv',
-						#'dividen_2014.csv',
-						#'dividen_2015.csv',
-						#'dividen_2016.csv',
-						#'dividen_2017.csv',
-						#'dividen_2018.csv']
-						('finacial_2006.csv', '2006'),
-						('finacial_2007.csv', '2007'),
-						('finacial_2008.csv', '2008'),
-						('finacial_2009.csv', '2009'),
-						('finacial_2010.csv', '2010'),
-						('finacial_2011.csv', '2011'),
-						('finacial_2012.csv', '2012'),
-						('finacial_2013.csv', '2013'),
-						('finacial_2014.csv', '2014'),
-						('finacial_2015.csv', '2015'),
-						('finacial_2016.csv', '2016'),
-						('finacial_2017.csv', '2017'),
-						]
+def translateFinacialHistory():
+	divident_list = [	('dividen_2006.csv', '2006'), 
+						('dividen_2007.csv', '2007'),
+						('dividen_2008.csv', '2008'),
+						('dividen_2009.csv', '2009'),
+						('dividen_2010.csv', '2010'),
+						('dividen_2011.csv', '2011'),
+						('dividen_2012.csv', '2012'),
+						('dividen_2013.csv', '2013'),
+						('dividen_2014.csv', '2014'),
+						('dividen_2015.csv', '2015'),
+						('dividen_2016.csv', '2016'),
+						('dividen_2017.csv', '2017'),
+						('dividen_2018.csv', '2018'),]
+						#('finacial_2006.csv', '2006'),
+						#('finacial_2007.csv', '2007'),
+						#('finacial_2008.csv', '2008'),
+						#('finacial_2009.csv', '2009'),
+						#('finacial_2010.csv', '2010'),
+						#('finacial_2011.csv', '2011'),
+						#('finacial_2012.csv', '2012'),
+						#('finacial_2013.csv', '2013'),
+						#('finacial_2014.csv', '2014'),
+						#('finacial_2015.csv', '2015'),
+						#('finacial_2016.csv', '2016'),
+						#('finacial_2017.csv', '2017'),
+						#]
 						
 	df_finacial = pd.DataFrame(columns=[	'stock', 'name',
 								'div_2006_cash', 'div_2007_cash', 'div_2008_cash', 'div_2009_cash',
@@ -409,7 +407,8 @@ def readFinacialHistory():
 								'payout_ratio_2014', 'yield_2014',
 								'payout_ratio_2015', 'yield_2015',
 								'payout_ratio_2016', 'yield_2016',
-								'payout_ratio_2017', 'yield_2017',])
+								'payout_ratio_2017', 'yield_2017',
+								'payout_ratio_2018', 'yield_2018',])
 	for (f, _year) in divident_list:
 		df = pd.read_csv('history/'+f)
 		df['代號']=df['代號'].str.replace('=', '')
@@ -428,7 +427,7 @@ def readFinacialHistory():
 			_yield = row['合計殖利率']
 			_ratio = row['盈餘總分配率']			
 			print('stock = {} {} {}'.format(f, stock, year))
-			if stock not in df_finacial['stock']:
+			if stock not in df_finacial['stock'].values:
 				_new = pd.DataFrame([[stock, name]],columns=[	'stock', 'name'])
 				df_finacial = df_finacial.append(_new, ignore_index=True)
 			new_row = df_finacial.loc[df_finacial['stock']==stock]

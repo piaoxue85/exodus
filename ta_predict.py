@@ -38,7 +38,6 @@ class ta_draw(object):
 		return
 		
 	def __del__(self):
-		print('delete draw')
 		plt.close('all')
 		
 	def redraw(self, xdata, ydata):
@@ -100,7 +99,7 @@ class ta_draw(object):
 		v = np.argmin(np.absolute(date2num(self.x_df)-xdata))
 		
 		# key '0'~'9' is to focus invent policy curve
-		if event.key >= '0' and event.key <= '9':
+		if self.th != None and event.key >= '0' and event.key <= '9':
 			self.focus_th_idx = int(event.key)
 			for _line in self.ax3_lines:
 				_line.set_linestyle('--')
@@ -191,12 +190,13 @@ class ta_draw(object):
 		RSI = self.df['RSI'].loc[v]
 		self.txt2.set_text('K:{:.2f}   D:{:.2f}   RSI:{:.2f}'.format(k, d, RSI))
 		
-		th = self.th[self.focus_th_idx][1]
-		cash = th['Cash'].loc[v]
-		shares = th['Own'].loc[v]
-		surplus = th['Total'].loc[v]
-		self.ly3.set_xdata(x)
-		self.txt3.set_text('surplus:{:.2f} cash:{:.2f} shares:{:.2f} '.format(surplus, cash, shares))
+		if self.th != None:
+			th = self.th[self.focus_th_idx][1]
+			cash = th['Cash'].loc[v]
+			shares = th['Own'].loc[v]
+			surplus = th['Total'].loc[v]
+			self.ly3.set_xdata(x)
+			self.txt3.set_text('surplus:{:.2f} cash:{:.2f} shares:{:.2f} '.format(surplus, cash, shares))
 		
 		plt.draw()
 
@@ -231,7 +231,11 @@ class ta_draw(object):
 		
 	def draw(self):
 		
-		self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, sharex=True)
+		if self.th != None:
+			self.fig, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, sharex=True)
+		else:
+			self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, sharex=True)
+			
 		self.ax1_1 = self.ax1.twinx()
 		
 		# set figure 
@@ -243,35 +247,8 @@ class ta_draw(object):
 		xtick_formatter = AutoDateFormatter(xtick_locator)
 		self.ax1.xaxis.set_major_locator(xtick_locator)
 		self.ax1.xaxis.set_major_formatter(xtick_formatter)
-
-
-		# set ax1 y lim by close		
-		ymin = np.min(self.df['close'])
-		ymax = np.max(self.df['close'])
-		self.ax1.set_ylim(ymin, ymax)
-		# set xlim by date
-		self.ax1.set_xlim(self.df['Date'].loc[0], self.df['Date'].loc[len(self.df['Date'])-1])
-		self.ax1_orig_xlim = self.ax1.get_xlim()
-		# plot the close value
-		self.ax1.plot(self.df['Date'], self.df['close'])
-		# draw grid
-		self.ax1.grid()		
 		
-		# set ax1_1 y lim by volume
-		ymin = np.min(self.df['volume'])
-		ymax = np.max(self.df['volume'])
-		self.ax1_1.set_ylim(ymin, ymax)
-		# set y label for ax1_1
-		self.ax1_1.set_ylabel('Vol')
-		# plot the volume value
-		self.ax1_1.plot(self.df['Date'], self.df['volume'], 'C1', label='Vol')
-		# draw grid
-		self.ax1_1.grid(color='C1', linestyle='-', linewidth=0.5)		
-
-		# ask matplotlib for the plotted objects and their labels
-		lines, labels = self.ax1.get_legend_handles_labels()
-		lines2, labels2 = self.ax1_1.get_legend_handles_labels()
-		self.ax1_1.legend(lines + lines2, labels + labels2, loc='upper left')		
+		self.draw_basic(self.ax1, self.ax1_1)
 		
 		# plot the KD
 		self.ax2_lines = dict()
@@ -295,21 +272,6 @@ class ta_draw(object):
 		ymax = ymax+5 if (ymax+5)<100 else 100
 		self.ax2.set_ylim(ymin, ymax)
 		
-		self.ax3_lines = []
-		for (th_title, th) in self.th:
-			marks = th['Date'][th['Buy'] != 0].index.tolist()
-			#marks = [1, 3, 5, 7, 9]
-			_line = self.ax3.plot(self.df['Date'], th['Total'], label=th_title, marker='.', markevery=marks)
-			self.ax3_lines.append(_line[0])
-			_line[0].set_linestyle('--')
-			_line[0].set_linewidth(0.5)
-		self.ax3_lines[self.focus_th_idx].set_linestyle('-')
-		self.ax3_lines[self.focus_th_idx].set_linewidth(1.5)		
-		lines, labels = self.ax3.get_legend_handles_labels()
-		self.ax3.legend(lines, labels, loc='upper left')
-		
-		#self.ax3.legend(self.focus_th_title, loc='upper right')
-		self.ax3.grid()
 		# set mouse scroll event
 
 		# draw lines for cursor focus
@@ -320,13 +282,31 @@ class ta_draw(object):
 		self.lx2_d = self.ax2.axhline(color='k', y=self.y2_k_df.loc[0], linewidth=0.5, linestyle='--')  # the horiz line
 		self.ly2_d = self.ax2.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line		
 		
-		th = self.th[self.focus_th_idx][1]
-		self.ly3 = self.ax3.axvline(color='k', x=th['Date'].loc[0], linewidth=0.5, linestyle='--')  # the vert line			
 		# text location in axes coords
 
 		self.txt1 = self.ax1.text(0, 1.05, "", transform=self.ax1.transAxes)
 		self.txt2 = self.ax2.text(0, 1.05, "", transform=self.ax2.transAxes)
-		self.txt3 = self.ax3.text(0, 1.05, "", transform=self.ax3.transAxes)
+
+		if self.th != None:
+			self.ax3_lines = []
+			for (th_title, th) in self.th:
+				marks = th['Date'][th['Buy'] != 0].index.tolist()
+				#marks = [1, 3, 5, 7, 9]
+				_line = self.ax3.plot(self.df['Date'], th['Total'], label=th_title, marker='.', markevery=marks)
+				self.ax3_lines.append(_line[0])
+				_line[0].set_linestyle('--')
+				_line[0].set_linewidth(0.5)
+			self.ax3_lines[self.focus_th_idx].set_linestyle('-')
+			self.ax3_lines[self.focus_th_idx].set_linewidth(1.5)		
+			lines, labels = self.ax3.get_legend_handles_labels()
+			self.ax3.legend(lines, labels, loc='upper left')
+			
+			#self.ax3.legend(self.focus_th_title, loc='upper right')
+			self.ax3.grid()
+			th = self.th[self.focus_th_idx][1]
+			self.ly3 = self.ax3.axvline(color='k', x=th['Date'].loc[0], linewidth=0.5, linestyle='--')  # the vert line			
+			self.txt3 = self.ax3.text(0, 1.05, "", transform=self.ax3.transAxes)			
+
 		
 		self.ax2.grid()
 		
@@ -389,94 +369,54 @@ class ta_predict():
 		self.df = df
 		return
 		
-	def trade_condition_kd(self, today):
+	def transaction_number_by_policy(self, today, buy_tactics, sell_tactics):
 		yesterday = today-1
 		rtn = 0
 		y_row = self.df.loc[yesterday]
 		t_row = self.df.loc[today]
 		reason = ''
 		# check buy
-		if y_row['k'] < self.os_k and y_row['d'] < self.os_d:
-			rtn = self.os_step if self.cash >= (self.os_step * t_row['open']) else int(self.cash/t_row['open'])
-		
-		if rtn > 0 and self.os_cross == True:
-			if y_row['k'] >= y_row['d']:
-				rtn = 0
-		if (rtn != 0):
-			reason = 'K {:.1f} D {:.1f}'.format(self.df['k'].loc[yesterday], self.df['d'].loc[yesterday])
-			return (rtn, reason)
-			
+		for tactic in buy_tactics:
+			shares_to_buy = tactic['shares']
+			buy_reason = tactic['name']
+			for cond in tactic['condition']:
+				index = cond['index']
+				if cond['type'] == 'absolute':
+					targetIdx = y_row[index]
+				# if can't meet to min/max requirement, don't do
+				if targetIdx < cond['min'] or targetIdx > cond['max']:
+					shares_to_buy = 0
+					break
+				buy_reason = buy_reason+index+' '+"{:.01f}".format(targetIdx)+','
+					
 		# check sell
-		if y_row['k'] >= self.ob_k and y_row['d'] >= self.ob_d:
-			rtn = self.ob_step if self.shares >= self.ob_step else self.shares
+		for tactic in sell_tactics:
+			shares_to_sell = tactic['shares'] * -1
+			for cond in tactic['condition']:
+				index = cond['index']
+				if cond['type'] == 'absolute':
+					targetIdx = y_row[index]
+				if cond['type'] == 'highest_diff_ratio':
+					period = cond['period']
+					if len(self.df[index][today-period:today]) < period:
+						shares_to_sell = 0
+						break
+					highest = np.max(self.df[index][today-period:today])
+					targetIdx = ((t_row[index]-highest)/highest)*100
+				# if can't meet to min/max requirement, don't do
+				if targetIdx < cond['min'] or targetIdx > cond['max']:
+					shares_to_sell = 0
+					break
+			if shares_to_sell != 0:
+				sell_reason = tactic['name']
 		
-		if rtn > 0 and self.ob_cross == True:
-			if y_row['k'] < y_row['d']:
-				rtn = 0
-		rtn = rtn * -1
-		if (rtn != 0):
-			reason = 'K {:.1f} D {:.1f}'.format(self.df['k'].loc[yesterday], self.df['d'].loc[yesterday])
-		return (rtn, reason)
-		
-	def trade_condition_winloss(self, today):
-		rtn = 0
-		reason = ''
-		t_row = self.df.loc[today]
-		
-		#check sell condition for max win
-		if t_row['open'] >= (self.avg_price * (1 + self.max_win)):
-			rtn = self.max_win_step if self.shares >= self.max_win_step else self.shares
-			reason = 'win {:.2f}'.format(t_row['open']-self.avg_price)
-			rtn = rtn * -1
-		if (rtn != 0):
-			return (rtn, reason) 
-
-		#check sell condition for max loss
-		if t_row['open'] <= (self.avg_price * (1 - self.max_loss)):
-			rtn = self.max_loss_step if self.shares >= self.max_loss_step else self.shares
-			reason = 'loss {:.2f}'.format(self.avg_price-t_row['open'])
-			rtn = rtn * -1
-		return (rtn, reason)
-
-	def trade_condition_RSI(self, today):
-		yesterday = today-1
-		rtn = 0
-		y_row = self.df.loc[yesterday]
-		t_row = self.df.loc[today]
-		reason = ''
-		# check buy
-		if y_row['RSI'] < self.RSI_buy:
-			rtn = self.RSI_buy_step if self.cash >= (self.RSI_buy_step * t_row['open']) else int(self.cash/t_row['open'])
-		
-		if (rtn != 0):
-			reason = 'RSI {:.2f}'.format(y_row['RSI'])
-			return (rtn, reason)
-			
-		# check sell
-		if y_row['RSI'] >= self.RSI_sell_step:
-			rtn = self.RSI_sell_step if self.shares >= self.RSI_sell_step else self.shares
-		
-		rtn = rtn * -1
-		if (rtn != 0):
-			reason = 'RSI {:.2f}'.format(y_row['RSI'])
-
-		return (rtn, reason)
-		
-	def transaction_number(self, today):
-		(rtn, reason) = self.trade_condition_winloss(today)
-		if rtn != 0:
-			return (rtn, reason)
-		(rtn, reason) = self.trade_condition_kd(today)
-		if rtn != 0:
-			return (rtn, reason)
-		#(rtn, reason) = self.trade_condition_RSI(today)
-		#if rtn != 0:
-		#	return (rtn, reason)
+		if shares_to_sell != 0:
+			return (shares_to_sell, sell_reason)
+		if shares_to_buy != 0:
+			return (shares_to_buy, buy_reason)			
 		return (0, "")
-			
-	def investment_return_history(self, initial_cash=100, max=(1, 0.15, 1, 1), \
-										overbought_idx=(22, 30, 1, False), oversold_idx=(80, 80, 1, False), \
-										RSI_idx=(75, 20, 1, 1)):
+		
+	def investment_return_history_by_policy(self, initial_cash, buy_tactics, sell_tactics):
 
 		self.initial_cash = initial_cash
 		self.cash = initial_cash
@@ -484,18 +424,9 @@ class ta_predict():
 		self.avg_price = 0
 		self.total = 0
 		self.total_invest = 0
-		(self.max_win, self.max_loss, self.max_win_step, self.max_loss_step) = max
-		(self.ob_k, self.ob_d, self.ob_step, self.ob_cross) = overbought_idx
-		(self.os_k, self.os_d, self.os_step, self.os_cross) = oversold_idx
-		(self.RSI_sell, self.RSI_buy, self.RSI_sell_step, self.RSI_buy_step) = RSI_idx
-										
-		self.avg_price = 0
-		total_invest = 0
 		trade_history = []
 		#print('initial cash {}'.format(self.initial_cash))
 		yesterday = None
-		self.cash = self.initial_cash
-		self.total_invest = 0
 		for today in self.df.index:
 			buy = 0
 			reason = ''
@@ -508,23 +439,28 @@ class ta_predict():
 				trade_history.append([date, reason, buy, price, self.shares, self.cash, total_value])
 				continue
 
-			(buy, reason) = self.transaction_number(today)
-			sell = abs(buy)
-			if (buy > 0):
-				self.shares += buy
-				self.total_invest = self.total_invest + buy * price
-				self.avg_price = self.total_invest / self.shares
-				self.cash = self.cash - buy * price
-			elif (sell > 0):
-				self.shares -= sell
-				self.total_invest = self.total_invest - sell * self.avg_price
-				self.cash = self.cash + sell * price
+			(buy, reason) = self.transaction_number_by_policy(today, buy_tactics, sell_tactics)
 
-			total_value = self.cash + self.shares * price
-			trade_history.append([date, reason, buy, price, self.shares, self.cash, total_value])
-			#print('trade: {} {} {:.2f} {} {:.2f} {:.2f} '.format(reason.ljust(16), buy, price, self.shares, self.cash, total_value))
+			if True:
+				sell = abs(buy)
+				if (buy > 0):
+					buy = buy if self.cash >= (buy * price) else int(self.cash/price)
+					self.shares += buy
+					self.total_invest = self.total_invest + buy * price
+					self.avg_price = self.total_invest / self.shares
+					self.cash = self.cash - buy * price
+				elif (sell > 0):
+					sell = sell if self.shares >= sell else self.shares
+					buy = sell * -1
+					self.shares -= sell
+					self.total_invest = self.total_invest - sell * self.avg_price
+					self.cash = self.cash + sell * price
+
+				total_value = self.cash + self.shares * price
+				trade_history.append([date, reason, buy, price, self.shares, self.cash, total_value])
+			#print('trade {}: {} {} {:.2f} {} {:.2f} {:.2f} '.format(self.df['DateStr'].loc[today], reason.ljust(30), buy, price, self.shares, self.cash, total_value))
 			yesterday = today
-		return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])
+		return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])		
 
 
 	def is_eligible(self, conditions):
