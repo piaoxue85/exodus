@@ -418,14 +418,15 @@ def translateFinacialHistory():
 		for index, row in df.iterrows():
 			stock = row['stock']
 			name = row['name']
-			#year = row['year']
-			#if year == '-':
-			year = _year
+			year = row['year']
+			if year == '-':
+				year = _year
 			div_cash = row['現金股利']
 			div_stock = row['股票股利']
 			div_all = row['合計股利']
 			_yield = row['合計殖利率']
-			_ratio = row['盈餘總分配率']			
+			_ratio = row['盈餘總分配率']
+			#year = row['year']
 			print('stock = {} {} {}'.format(f, stock, year))
 			if stock not in df_finacial['stock'].values:
 				_new = pd.DataFrame([[stock, name]],columns=[	'stock', 'name'])
@@ -434,6 +435,8 @@ def translateFinacialHistory():
 			new_row['div_2006']=100
 			if f == 'dividen_2018.csv':
 				year = '2018'
+			elif year == '2018':
+				continue
 			column = 'div_'+year
 
 			df_finacial['div_'+year+'_cash'].loc[df_finacial['stock']==stock] = div_cash
