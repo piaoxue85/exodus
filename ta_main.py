@@ -29,19 +29,7 @@ def readPolicy(path):
 	policy = json.load(json_data)
 	return policy
 														
-def main():
-
-	ap = argparse.ArgumentParser()
-	ap.add_argument("-f", "--file", required=False, default='all_stock.csv')
-	ap.add_argument("-s", "--stock", required=False, default='')
-	ap.add_argument("-p", "--period", type=int, required=False, default=200)
-	ap.add_argument("-i", "--initial", required=False, default=1000)
-	ap.add_argument("-v", "--visualize", required=False, default=False, action='store_true')
-	ap.add_argument("-t", "--tindex", required=False, default=False, action='store_true')
-	ap.add_argument("-e", "--evaluate", required=False, default='')
-	ap.add_argument("-g", "--graphics", required=False, default=False, action='store_true')
-	ap.add_argument("-d", "--debug", required=False, default=False, action='store_true')
-	args = vars(ap.parse_args())
+def main(args):
 
 	pd.options.display.float_format = '{:.2f}'.format
 
@@ -54,20 +42,22 @@ def main():
 
 	df_ROE=readROEHistory('ROE_2006_2017.csv')
 	stockROEList = df_ROE['stock'].values
-
-	initial_cash = args['initial']
-	period = args['period']
+	
 	now = datetime.datetime.now()
 
 	policy = readPolicy('policy/'+args['evaluate'])
-	
+	period = policy['period']
+	pngPath = args['path']+'/png'
+	evaluatePath = args['path']+'/'+args['evaluate'].split('.')[0]
+	os.makedirs(pngPath, exist_ok=True)
+	os.makedirs(evaluatePath, exist_ok=True)
 	for stock in stockList:
 
 		#if (stock not in stockROEList) and (args['stock'] == ''):
 		#	print('skip ', stock)
 		#	continue
 		#print('process ', stock)
-		initial_cash = args['initial']
+		initial_cash = policy['initial']
 		empty, df_main = readStockHistory(stock, period, raw=False)
 		if empty == True:
 			print('no data')
@@ -89,51 +79,63 @@ def main():
 
 			ta_p0['Total'] = ta_p0['Total'] - initial_cash
 			
-			ta_p0.to_csv('test_result/'+stock+policy['name']+'.csv')
+			ta_p0.to_csv(evaluatePath+'/'+stock+policy['name']+'.csv')
 			max_return_idx = ta_p0['Total'].idxmax()
 			min_return_idx = ta_p0['Total'].idxmin()
 			final_return = ta_p0['Total'].tail(1).values[0]
 			max_return = ta_p0['Total'].loc[max_return_idx]
 			min_return = ta_p0['Total'].loc[min_return_idx]
 			
-			print('========= {} on {} {}, initial = {:.2f}'.format(policy['name'], stock_id, stock_name, args['initial']))
+			print('========= {} on {} {}, initial = {:.2f}'.format(policy['name'], stock_id, stock_name, initial_cash))
 			print('final earn {:.2f}({:.2f}%)'.format(final_return, (final_return*100)/initial_cash))
 			print('max earn {:.2f}({:.2f}%) on {}'.format(max_return, (max_return*100)/initial_cash, ta_p0['Date'].loc[max_return_idx]))
 			print('min earn {:.2f}({:.2f}%) on {}'.format(min_return, (min_return*100)/initial_cash, ta_p0['Date'].loc[min_return_idx]))
 
-			if args['graphics'] == True:
-				trade_history = [(policy['name'], ta_p0)]
+			trade_history = [(policy['name'], ta_p0)]
+		
+			pngName = evaluatePath+'/{}_{}{:02d}{:02d}.png'.format(stock, now.year, now.month, now.day)
+			draw = ta_draw(stock_id+'  '+stock_name, df_main, trade_history, pngName)
+			draw.draw()
 			
-				pngName = 'figures/{}_{}{:02d}{:02d}.png'.format(stock, now.year, now.month, now.day)
-				draw = ta_draw(stock_id+'  '+stock_name, df_main, trade_history, pngName)
-				draw.draw()
-				
-				df_short = df_main.tail(20)
-				df_short.reset_index(drop=True, inplace=True)
-				ta_p0_short = ta_p0.tail(20)
-				ta_p0_short.reset_index(drop=True, inplace=True)
-				trade_history = [(policy['name'], ta_p0_short)]
-				pngName = 'figures/{}_{}{:02d}{:02d}_01.png'.format(stock, now.year, now.month, now.day)
-				draw = ta_draw(stock_id+'  '+stock_name, df_short, trade_history, pngName)
-				draw.draw()
-				del draw
+			df_short = df_main.tail(20)
+			df_short.reset_index(drop=True, inplace=True)
+			ta_p0_short = ta_p0.tail(20)
+			ta_p0_short.reset_index(drop=True, inplace=True)
+			trade_history = [(policy['name'], ta_p0_short)]
+			pngName = evaluatePath+'/{}_{}{:02d}{:02d}_01.png'.format(stock, now.year, now.month, now.day)
+			draw = ta_draw(stock_id+'  '+stock_name, df_short, trade_history, pngName)
+			draw.draw()
+			del draw
 			
 		if args['tindex'] == True:
 			df_short = df_main.tail(20)
 			df_short.reset_index(drop=True, inplace=True)
-			pngName = 'figures/{}_{}{:02d}{:02d}_short.png'.format(stock, now.year, now.month, now.day)
+			
+			pngName = pngPath+'/{}_{}{:02d}{:02d}_short.png'.format(stock, now.year, now.month, now.day)
 			draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
 			draw.draw()
-			pngName = 'figures/{}_{}{:02d}{:02d}_KD.png'.format(stock, now.year, now.month, now.day)
+			pngName = pngPath+'/{}_{}{:02d}{:02d}_KD.png'.format(stock, now.year, now.month, now.day)
 			draw.draw_ta('KD', pngName)
-			pngName = 'figures/{}_{}{:02d}{:02d}_MACD.png'.format(stock, now.year, now.month, now.day)
+			pngName = pngPath+'/{}_{}{:02d}{:02d}_MACD.png'.format(stock, now.year, now.month, now.day)
 			draw.draw_ta('MACD', pngName)
-			pngName = 'figures/{}_{}{:02d}{:02d}_SMA.png'.format(stock, now.year, now.month, now.day)
+			pngName = pngPath+'/{}_{}{:02d}{:02d}_SMA.png'.format(stock, now.year, now.month, now.day)
 			draw.draw_ta('SMA', pngName)
-			pngName = 'figures/{}_{}{:02d}{:02d}_BIAS.png'.format(stock, now.year, now.month, now.day)
+			pngName = pngPath+'/{}_{}{:02d}{:02d}_BIAS.png'.format(stock, now.year, now.month, now.day)
 			draw.draw_ta('BIAS', pngName)
 			del draw
 		
 		#find_by_volume(df_main, stock_id, stock_name)
+if __name__ == '__main__':
 
-main()
+	ap = argparse.ArgumentParser()
+	ap.add_argument("-f", "--file", required=False, default='all_stock.csv')
+	ap.add_argument("-s", "--stock", required=False, default='')
+	ap.add_argument("-v", "--visualize", required=False, default=False, action='store_true')
+	ap.add_argument("-t", "--tindex", required=False, default=False, action='store_true')
+	ap.add_argument("-p", "--path", required=False, default=False, action='store_true')
+	ap.add_argument("-e", "--evaluate", required=False, default='')
+	ap.add_argument("-g", "--graphics", required=False, default=False, action='store_true')
+	ap.add_argument("-d", "--debug", required=False, default=False, action='store_true')
+	args = vars(ap.parse_args())
+
+	main(args)

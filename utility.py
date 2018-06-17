@@ -9,6 +9,7 @@ from io import StringIO
 from datetime import date, datetime, timedelta
 import datetime as dt
 import time
+import json
 import os
 from googlefinance.client import get_price_data, get_prices_data, get_prices_time_data
 
@@ -71,6 +72,11 @@ def update_daily_per(year, month, day, writFile=False):
 		print('unable to get ', datestr)
 		return (False, None)
 
+def readPolicy(path):
+	json_data=open(path)
+	policy = json.load(json_data)
+	return policy		
+		
 def daterange(start_date, end_date):
 	for n in range(int ((end_date - start_date).days)):
 		yield start_date + timedelta(n)
@@ -446,3 +452,181 @@ def translateFinacialHistory():
 			df_finacial['payout_ratio_'+year].loc[df_finacial['stock']==stock] = _ratio
 		#break
 	return df_finacial
+	
+def translateDividenHistory(outfile):
+	divident_list = [	('dividen_2006.csv', '2006'), 
+						('dividen_2007.csv', '2007'),
+						('dividen_2008.csv', '2008'),
+						('dividen_2009.csv', '2009'),
+						('dividen_2010.csv', '2010'),
+						('dividen_2011.csv', '2011'),
+						('dividen_2012.csv', '2012'),
+						('dividen_2013.csv', '2013'),
+						('dividen_2014.csv', '2014'),
+						('dividen_2015.csv', '2015'),
+						('dividen_2016.csv', '2016'),
+						('dividen_2017.csv', '2017'),
+						('dividen_2018.csv', '2018'),
+						]
+
+	df_div = pd.DataFrame(columns=[	'stock', 'name',
+								'div_2006_cash', 'div_2007_cash', 'div_2008_cash', 'div_2009_cash',
+								'div_2010_cash', 'div_2011_cash', 'div_2012_cash', 'div_2013_cash',
+								'div_2014_cash', 'div_2015_cash', 'div_2016_cash', 'div_2017_cash', 'div_2018_cash',
+								'div_2006_stock', 'div_2007_stock', 'div_2008_stock', 'div_2009_stock',
+								'div_2010_stock', 'div_2011_stock', 'div_2012_stock', 'div_2013_stock',
+								'div_2014_stock', 'div_2015_stock', 'div_2016_stock', 'div_2017_stock', 'div_2018_stock',
+								'div_2006_all', 'div_2007_all', 'div_2008_all', 'div_2009_all',
+								'div_2010_all', 'div_2011_all', 'div_2012_all', 'div_2013_all',
+								'div_2014_all', 'div_2015_all', 'div_2016_all', 'div_2017_all', 'div_2018_all',
+								'payout_ratio_2006', 'yield_2006', 
+								'payout_ratio_2007', 'yield_2007',
+								'payout_ratio_2008', 'yield_2008',
+								'payout_ratio_2009', 'yield_2009',
+								'payout_ratio_2010', 'yield_2010',
+								'payout_ratio_2011', 'yield_2011',
+								'payout_ratio_2012', 'yield_2012',
+								'payout_ratio_2013', 'yield_2013',
+								'payout_ratio_2014', 'yield_2014',
+								'payout_ratio_2015', 'yield_2015',
+								'payout_ratio_2016', 'yield_2016',
+								'payout_ratio_2017', 'yield_2017',
+								'payout_ratio_2018', 'yield_2018',
+								])
+	for (f, _year) in divident_list:
+		df_orig = pd.read_csv('history/'+f)
+		df_orig['代號']=df_orig['代號'].str.replace('=', '')
+		df_orig['代號']=df_orig['代號'].str.replace('"', '')	
+
+		df_orig.rename(columns={'代號': 'stock', '名稱': 'name', '股利發放年度': 'year'}, inplace=True)		
+		for index, row in df_orig.iterrows():
+			stock = row['stock']
+			name = row['name']
+			year = row['year']
+			if year == '-':
+				year = _year
+			div_cash = row['現金股利']
+			div_stock = row['股票股利']
+			div_all = row['合計股利']
+			_yield = row['合計殖利率']
+			_ratio = row['盈餘總分配率']
+			#year = row['year']
+			print('stock = {} {} {}'.format(f, stock, year))
+			if stock not in df_div['stock'].values:
+				_new = pd.DataFrame([[stock, name]],columns=[	'stock', 'name'])
+				df_div = df_div.append(_new, ignore_index=True)
+
+			if f == 'dividen_2018.csv':
+				year = '2018'
+			elif year == '2018':
+				continue
+
+			df_div['div_'+year+'_cash'].loc[df_div['stock']==stock] = div_cash
+			df_div['div_'+year+'_stock'].loc[df_div['stock']==stock] = div_stock
+			df_div['div_'+year+'_all'].loc[df_div['stock']==stock] = div_all
+			df_div['yield_'+year].loc[df_div['stock']==stock] = _yield
+			df_div['payout_ratio_'+year].loc[df_div['stock']==stock] = _ratio
+		#break
+	df_div.fillna(0, inplace=True)
+	df_div['std_yield']=pd.Series([float(0)]*len(df_div), df_div.index)
+	df_div['std_payout']=pd.Series([float(0)]*len(df_div), df_div.index)
+	df_div['mean_yield']=pd.Series([float(0)]*len(df_div), df_div.index)
+	df_div['mean_payout']=pd.Series([float(0)]*len(df_div), df_div.index)
+
+	for index, row in df_div.iterrows():
+		_yield = [	row['yield_2006'],
+					row['yield_2007'],
+					row['yield_2008'],
+					row['yield_2009'],
+					row['yield_2010'],
+					row['yield_2011'],
+					row['yield_2011'],
+					row['yield_2012'],
+					row['yield_2013'],
+					row['yield_2014'],
+					row['yield_2015'],
+					row['yield_2016'],
+					row['yield_2017']]
+		df_div.loc[index, 'std_yield'] = np.std(_yield)
+		df_div.loc[index, 'mean_yield'] = np.mean(_yield)
+		_payout = [	row['payout_ratio_2006'],
+					row['payout_ratio_2007'],
+					row['payout_ratio_2008'],
+					row['payout_ratio_2009'],
+					row['payout_ratio_2010'],
+					row['payout_ratio_2011'],
+					row['payout_ratio_2011'],
+					row['payout_ratio_2012'],
+					row['payout_ratio_2013'],
+					row['payout_ratio_2014'],
+					row['payout_ratio_2015'],
+					row['payout_ratio_2016'],
+					row['payout_ratio_2017']]
+		df_div.loc[index, 'std_payout'] = np.std(_payout)
+		df_div.loc[index, 'mean_payout'] = np.mean(_payout)
+
+		_div_all = [	row['div_2006_all'],
+					row['div_2006_all'],
+					row['div_2007_all'],
+					row['div_2008_all'],
+					row['div_2009_all'],
+					row['div_2010_all'],
+					row['div_2011_all'],
+					row['div_2012_all'],
+					row['div_2013_all'],
+					row['div_2014_all'],
+					row['div_2015_all'],
+					row['div_2016_all'],
+					row['div_2017_all']]
+		df_div.loc[index, 'std_div_all'] = np.std(_div_all)
+		df_div.loc[index, 'mean_div_all'] = np.mean(_div_all)
+
+	df_div=df_div.sort_values(by=['mean_div_all'], ascending=False)
+	df_div.reset_index(inplace=True)
+	df_div = df_div[['stock', 'name', 
+					'mean_div_all', 'std_div_all',
+					'mean_yield', 'std_yield', 'mean_payout', 'std_payout',
+					'yield_2018', 'payout_ratio_2018', 'div_2018_all', 'div_2018_cash', 'div_2018_stock',
+					'yield_2017', 'payout_ratio_2017', 'div_2017_all', 'div_2017_cash', 'div_2017_stock',
+					'yield_2016', 'payout_ratio_2016', 'div_2016_all', 'div_2016_cash', 'div_2016_stock',
+					'yield_2015', 'payout_ratio_2015', 'div_2015_all', 'div_2015_cash', 'div_2015_stock',
+					'yield_2014', 'payout_ratio_2014', 'div_2014_all', 'div_2014_cash', 'div_2014_stock',
+					'yield_2013', 'payout_ratio_2013', 'div_2013_all', 'div_2013_cash', 'div_2013_stock',
+					'yield_2012', 'payout_ratio_2012', 'div_2012_all', 'div_2012_cash', 'div_2012_stock',
+					'yield_2011', 'payout_ratio_2011', 'div_2011_all', 'div_2011_cash', 'div_2011_stock',
+					'yield_2010', 'payout_ratio_2010', 'div_2010_all', 'div_2010_cash', 'div_2010_stock',
+					'yield_2009', 'payout_ratio_2009', 'div_2009_all', 'div_2009_cash', 'div_2009_stock',
+					'yield_2008', 'payout_ratio_2008', 'div_2008_all', 'div_2008_cash', 'div_2008_stock',
+					'yield_2007', 'payout_ratio_2007', 'div_2007_all', 'div_2007_cash', 'div_2007_stock',
+					'yield_2006', 'payout_ratio_2006', 'div_2006_all', 'div_2006_cash', 'div_2006_stock', 
+				]]
+								
+
+	df_div.to_csv('history/'+outfile, float_format='%.2f')
+
+	
+def readDividenHistory(fname):
+	df_eng = pd.read_csv('history/'+fname)
+	df_cht = df_eng.rename(columns={'stock': '代碼', 
+									'name': '名稱',
+									'mean_div_all':'平均股利息',
+									'std_div_all':'股息標準差',
+									'mean_yield':'平均殖利率',
+									'std_yield':'殖利率標準差',
+									'mean_payout':'平均配息率',
+									'std_payout':'配息率標準差',
+									'yield_2018':'2018殖利率', 'payout_ratio_2018':'2018配息率', 'div_2018_all':'2018股利+現金', 'div_2018_cash':'2018現金', 'div_2018_stock':'2018股票',
+									'yield_2017':'2017殖利率', 'payout_ratio_2017':'2017配息率', 'div_2017_all':'2017股利+現金', 'div_2017_cash':'2017現金', 'div_2017_stock':'2017股票',
+									'yield_2016':'2016殖利率', 'payout_ratio_2016':'2016配息率', 'div_2016_all':'2016股利+現金', 'div_2016_cash':'2016現金', 'div_2016_stock':'2016股票',
+									'yield_2015':'2015殖利率', 'payout_ratio_2015':'2015配息率', 'div_2015_all':'2015股利+現金', 'div_2015_cash':'2015現金', 'div_2015_stock':'2015股票',
+									'yield_2014':'2014殖利率', 'payout_ratio_2014':'2014配息率', 'div_2014_all':'2014股利+現金', 'div_2014_cash':'2014現金', 'div_2014_stock':'2014股票',
+									'yield_2013':'2013殖利率', 'payout_ratio_2013':'2013配息率', 'div_2013_all':'2013股利+現金', 'div_2013_cash':'2013現金', 'div_2013_stock':'2013股票',
+									'yield_2012':'2012殖利率', 'payout_ratio_2012':'2012配息率', 'div_2012_all':'2012股利+現金', 'div_2012_cash':'2012現金', 'div_2012_stock':'2012股票',
+									'yield_2011':'2011殖利率', 'payout_ratio_2011':'2011配息率', 'div_2011_all':'2011股利+現金', 'div_2011_cash':'2011現金', 'div_2011_stock':'2011股票',
+									'yield_2010':'2010殖利率', 'payout_ratio_2010':'2010配息率', 'div_2010_all':'2010股利+現金', 'div_2010_cash':'2010現金', 'div_2010_stock':'2010股票',
+									'yield_2009':'2009殖利率', 'payout_ratio_2009':'2009配息率', 'div_2009_all':'2009股利+現金', 'div_2009_cash':'2009現金', 'div_2009_stock':'2009股票',
+									'yield_2008':'2008殖利率', 'payout_ratio_2008':'2008配息率', 'div_2008_all':'2008股利+現金', 'div_2008_cash':'2008現金', 'div_2008_stock':'2008股票',
+									'yield_2007':'2007殖利率', 'payout_ratio_2007':'2007配息率', 'div_2007_all':'2007股利+現金', 'div_2007_cash':'2007現金', 'div_2007_stock':'2007股票',
+									'yield_2006':'2006殖利率', 'payout_ratio_2006':'2006配息率', 'div_2006_all':'2006股利+現金', 'div_2006_cash':'2006現金', 'div_2006_stock':'2006股票',
+								})
+	return df_eng, df_cht

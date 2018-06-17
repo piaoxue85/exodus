@@ -1,0 +1,36 @@
+{
+    "type": "PICK",
+    "name": "PICK0",
+    "tactic":
+    {
+        "condition":
+        [
+            {
+                "index": "close",
+                "type": "absolute",
+                "period": 1,
+                "min": 10.0,
+                "max": 9999.0
+            },
+            {
+                "index": "mean_yield",
+                "type": "absolute",
+                "min": 3.0,
+                "max": 999.0
+            },
+            {
+                "index": "std_yield",
+                "type": "absolute",
+                "min": 0.0,
+                "max": 3.0
+            },
+            {
+               "index": "close",
+                "type": "std_distribution",
+                "period": 1000,
+                "sigma": 10,
+                "ratio": 66
+            }
+        ]
+    }
+}
