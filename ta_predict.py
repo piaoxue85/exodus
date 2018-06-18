@@ -6,6 +6,7 @@ from talib.abstract import *
 import talib
 import matplotlib.pyplot as plt
 import matplotlib
+import utility
 from matplotlib.ticker import Formatter
 from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
 
@@ -365,7 +366,8 @@ class ta_draw(object):
 			plt.savefig(pngName)
 			
 class ta_predict():
-	def __init__(self, df):
+	def __init__(self, stock, df):
+		self.stock = stock
 		self.df = df
 		return
 		
@@ -433,6 +435,17 @@ class ta_predict():
 			
 			price = self.df['open'].loc[today]
 			date = self.df['Date'].loc[today]
+			df_div = utility.readDividenByStockYear(str(date.year), self.stock)
+			div_stock = df_div['div_stock'].values[0]
+			div_cash = df_div['div_cash'].values[0]
+			div_stock_date = df_div['div_stock_date'].values[0]
+			div_cash_date = df_div['div_cash_date'].values[0]
+			if (div_stock_date == self.df['DateStr'].loc[today]):
+				self.shares = self.shares * (1+div_stock/10)
+			if (div_cash_date == self.df['DateStr'].loc[today]):
+				self.cash = self.cash+self.shares * (div_stock/10) * self.df['open'].loc[today]
+
+			print('{} {}:: div {} on {}, {} on {}'.format(self.stock, date.year, div_stock, div_stock_date, div_cash, div_cash_date))
 			total_value = self.cash + self.shares * self.df['open'].loc[today]
 			if (yesterday == None):
 				yesterday = today

@@ -22,12 +22,6 @@
                 "type": "absolute",
                 "min": 0.0,
                 "max": 25.0
-            },
-            {
-                "index": "RSI",
-                "type": "absolute",
-                "min": 50.0,
-                "max": 100
             }
         ]
     },

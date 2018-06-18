@@ -452,7 +452,51 @@ def translateFinacialHistory():
 			df_finacial['payout_ratio_'+year].loc[df_finacial['stock']==stock] = _ratio
 		#break
 	return df_finacial
-	
+
+__df_div_cache = pd.DataFrame() 
+__df_div_cache_year = '0000'
+def readDividenByStockYear(year, stock):
+	global __df_div_cache, __df_div_cache_year
+	if __df_div_cache.empty == False and __df_div_cache_year == year and stock in __df_div_cache['stock'].values:
+		return __df_div_cache
+
+	df = pd.read_csv('history/dividen_'+str(year)+'.csv', dtype={'股利發放年度':str})
+	df.rename(columns={	'代號': 'stock', 
+						'名稱': 'name', 
+						'股利發放年度': 'year', 
+						'現金股利': 'div_cash',
+						'股票股利': 'div_stock',
+						'除息交易日': 'div_cash_date',
+						'除權交易日': 'div_stock_date',
+						}, inplace=True)
+	df['stock'] = df['stock'].str.replace('=', '')
+	df['stock'] = df['stock'].str.replace('"', '')
+
+	df = df[df['stock']==stock]
+	try:
+		df = df[df['year']==year]
+	except:
+		print('error')
+	df['div_cash'].fillna(0)
+	df['div_stock'].fillna(0)
+	for index, row in df.iterrows():
+		try:
+			_dateStr = row['div_cash_date']
+			_dateStr = '20'+_dateStr.split('\'')[0]+'-'+_dateStr.split('\'')[1].split('/')[0]+'-'+_dateStr.split('\'')[1].split('/')[1]
+		except:
+			_dateStr = '0000-0-0'
+		df.loc[index, 'div_cash_date'] = _dateStr
+		try:
+			_dateStr = row['div_stock_date']
+			_dateStr = '20'+_dateStr.split('\'')[0]+'-'+_dateStr.split('\'')[1].split('/')[0]+'-'+_dateStr.split('\'')[1].split('/')[1]
+		except:
+			_dateStr = '0000-0-0'
+		df.loc[index, 'div_stock_date'] = _dateStr
+
+	__df_div_cache = df
+	__df_div_cache_year = year
+	return df
+
 def translateDividenHistory(outfile):
 	divident_list = [	('dividen_2006.csv', '2006'), 
 						('dividen_2007.csv', '2007'),

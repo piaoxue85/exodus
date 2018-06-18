@@ -51,6 +51,8 @@ def main(args):
 	evaluatePath = args['path']+'/'+args['evaluate'].split('.')[0]
 	os.makedirs(pngPath, exist_ok=True)
 	os.makedirs(evaluatePath, exist_ok=True)
+
+	df_div_eng, _ = readDividenHistory('dividen.csv')
 	for stock in stockList:
 
 		#if (stock not in stockROEList) and (args['stock'] == ''):
@@ -64,7 +66,7 @@ def main(args):
 			continue
 		(stock_id, stock_name) = stockList[stock]
 		if (args['evaluate'] != ''):
-			predict = ta_predict(df_main)
+			predict = ta_predict(stock_id, df_main)
 			
 			buy_tactics = []
 			for idx in range(0, policy['buy_tactic_num']):

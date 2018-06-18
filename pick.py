@@ -12,6 +12,8 @@ def pick_by_policy(df_ROE, df_div, policy):
 	reason = ''
 	# check buy
 	stockList = set(df_ROE['stock'].values.tolist()+df_div['stock'].values.tolist())
+	stockList = [s for s in stockList]
+	stockList = sorted(stockList)
 	pickList = []
 	for stock in stockList:
 		to_pick = True
@@ -65,6 +67,7 @@ def pick_by_policy(df_ROE, df_div, policy):
 					
 		if to_pick == True:
 			pickList.append((stock, name, price, std_price, mean_price))
+			#break
 	print('pick ', pickList)
 	return pickList
 	
