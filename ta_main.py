@@ -53,6 +53,8 @@ def main(args):
 	os.makedirs(evaluatePath, exist_ok=True)
 
 	df_div_eng, _ = readDividenHistory('dividen.csv')
+	invest_return_columns = ['stock', 'name', 'final%', 'max%', 'max_date', 'min%', 'min_date']
+	df_invest_return = pd.DataFrame(columns=invest_return_columns)
 	for stock in stockList:
 
 		#if (stock not in stockROEList) and (args['stock'] == ''):
@@ -88,6 +90,19 @@ def main(args):
 			max_return = ta_p0['Total'].loc[max_return_idx]
 			min_return = ta_p0['Total'].loc[min_return_idx]
 			
+			minDate = '{}-{}-{}'.format(ta_p0['Date'].loc[min_return_idx].year, \
+										ta_p0['Date'].loc[min_return_idx].month, \
+										ta_p0['Date'].loc[min_return_idx].day)
+			maxDate = '{}-{}-{}'.format(ta_p0['Date'].loc[max_return_idx].year, \
+										ta_p0['Date'].loc[max_return_idx].month, \
+										ta_p0['Date'].loc[max_return_idx].day)
+			_invest_return = pd.DataFrame(
+									[[stock_id, stock_name, 
+									(final_return*100)/initial_cash, 
+									(max_return*100)/initial_cash, maxDate, 
+									(min_return*100)/initial_cash, minDate]],
+									columns=invest_return_columns)
+			df_invest_return = df_invest_return.append(_invest_return, ignore_index=True)
 			print('========= {} on {} {}, initial = {:.2f}'.format(policy['name'], stock_id, stock_name, initial_cash))
 			print('final earn {:.2f}({:.2f}%)'.format(final_return, (final_return*100)/initial_cash))
 			print('max earn {:.2f}({:.2f}%) on {}'.format(max_return, (max_return*100)/initial_cash, ta_p0['Date'].loc[max_return_idx]))
@@ -125,7 +140,10 @@ def main(args):
 			pngName = pngPath+'/{}_{}{:02d}{:02d}_BIAS.png'.format(stock, now.year, now.month, now.day)
 			draw.draw_ta('BIAS', pngName)
 			del draw
-		
+	
+	if df_invest_return.empty == False:
+		df_invest_return = df_invest_return.sort_values(by=['final%'], ascending=False)
+		df_invest_return.to_csv(evaluatePath+'/total_return.csv', float_format='%.2f')
 		#find_by_volume(df_main, stock_id, stock_name)
 if __name__ == '__main__':
 

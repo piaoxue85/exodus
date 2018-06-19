@@ -445,7 +445,7 @@ class ta_predict():
 			if (div_cash_date == self.df['DateStr'].loc[today]):
 				self.cash = self.cash+self.shares * (div_stock/10) * self.df['open'].loc[today]
 
-			print('{} {}:: div {} on {}, {} on {}'.format(self.stock, date.year, div_stock, div_stock_date, div_cash, div_cash_date))
+			#print('{} {}:: div {} on {}, {} on {}'.format(self.stock, date.year, div_stock, div_stock_date, div_cash, div_cash_date))
 			total_value = self.cash + self.shares * self.df['open'].loc[today]
 			if (yesterday == None):
 				yesterday = today
