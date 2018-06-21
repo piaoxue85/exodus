@@ -65,6 +65,28 @@ def pick_by_policy(df_ROE, df_div, policy):
 					to_pick = False				
 					break
 					
+			if cond['type'] == 'detect_abnormal':
+				method = cond['method']
+				ratio = cond['ratio']
+				times = cond['times']
+				interval = cond['interval']
+				if method == 'above_mean':
+					mean = np.mean(df[index])
+					df_ok = df[df[index] >= ratio * mean]
+					indexs = df_ok.index
+					indexs1 = indexs[1:]
+					indexs = indexs[:len(indexs)-1]
+					indexs = np.subtract(indexs1,indexs)
+					indexs = np.where(indexs <= interval)[0]
+					#print('{}: abnormal {}'.format(stock, len(indexs)))
+					if len(indexs) < times:
+						to_pick = False				
+						break
+					else:
+						print('pick {}'.format(stock, len(indexs)))
+				if method == 'above_median':
+					median = np.mean(df[index])
+					
 		if to_pick == True:
 			pickList.append((stock, name, price, std_price, mean_price))
 			#break
@@ -139,11 +161,12 @@ def main():
 	df_pick.to_excel(writer, float_format='%.2f')
 	writer.save()
 
-	args['file'] = nameListFileName
-	args['stock'] = ''
-	args['visualize'] = False
-	args['path'] = path
-	ta_main.main(args)
+	if (args['evaluate'] != ''):
+		args['file'] = nameListFileName
+		args['stock'] = ''
+		args['visualize'] = False
+		args['path'] = path
+		ta_main.main(args)
 
 if __name__ == '__main__':
 	main()

@@ -144,6 +144,9 @@ def main(args):
 	if df_invest_return.empty == False:
 		df_invest_return = df_invest_return.sort_values(by=['final%'], ascending=False)
 		df_invest_return.to_csv(evaluatePath+'/total_return.csv', float_format='%.2f')
+		writer = pd.ExcelWriter(evaluatePath+'/total_return.xlsx')
+		df_invest_return.to_excel(writer, float_format='%.2f')
+		writer.save()		
 		#find_by_volume(df_main, stock_id, stock_name)
 if __name__ == '__main__':
 

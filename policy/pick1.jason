@@ -1,0 +1,33 @@
+{
+    "type": "PICK",
+    "name": "PICK0",
+    "tactic":
+    {
+        "condition":
+        [
+            {
+                "index": "volume",
+                "type": "detect_abnormal",
+                "method": "above_mean",
+                "period": 1000,
+                "interval": 10,
+                "ratio": 10,
+                "times": 2
+            },
+            {
+                "index": "close",
+                "type": "detect_abnormal",
+                "method": "above_mean",
+                "period": 1000,
+                "interval": 30,
+                "ratio": 2,
+                "times": 1
+            }
+        ],
+        "output":
+        [
+            "date",
+            "close"
+        ]
+    }
+}

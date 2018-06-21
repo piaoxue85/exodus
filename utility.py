@@ -152,7 +152,7 @@ def update_daily(startDate, period):
 				high = float(row['最高價'])
 				low = float(row['最低價'])
 				dateStr = mydatetime.strftime('%Y-%m-%d')
-				new_sample = '{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
+				new_sample = '{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), len(df_stock),
 												_open, high, low, _close, volume, 
 												mydatetime,
 												dateStr,
@@ -217,9 +217,9 @@ def get_monthly_revenus(stock, year, month):
 		
 def readStockHistory(stock, period, raw=True):
 	try:
-		df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
+		df_main = pd.read_csv('history/'+stock+'.csv', dtype={'volume':np.float64}, delim_whitespace=False, header=0)
 	except:
-		#print('history/'+stock+'.csv has problem')
+		print('history/'+stock+'.csv has problem')
 		return True, None
 		
 	if df_main.empty:
