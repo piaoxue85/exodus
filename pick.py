@@ -161,7 +161,7 @@ def main():
 	df_pick.to_excel(writer, float_format='%.2f')
 	writer.save()
 
-	if (args['evaluate'] != ''):
+	if (args['evaluate'] != '') or (args['tindex'] != ''):
 		args['file'] = nameListFileName
 		args['stock'] = ''
 		args['visualize'] = False
