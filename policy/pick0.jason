@@ -7,25 +7,32 @@
         [
             {
                 "index": "close",
+                "function": "simple_compare",
                 "type": "absolute",
+                "method": "mean",
                 "period": 1,
                 "min": 10.0,
                 "max": 9999.0
             },
             {
                 "index": "mean_yield",
+                "function": "simple_compare",
                 "type": "absolute",
+                "method": "mean",
                 "min": 3.0,
                 "max": 999.0
             },
             {
                 "index": "std_yield",
+                "function": "simple_compare",
                 "type": "absolute",
+                "method": "mean",
                 "min": 0.0,
                 "max": 3.0
             },
             {
-               "index": "close",
+                "index": "close",
+                "function": "std_distribution",
                 "type": "std_distribution",
                 "period": 1000,
                 "sigma": 10,

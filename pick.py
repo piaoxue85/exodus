@@ -8,84 +8,161 @@ from collections import OrderedDict
 import datetime
 import ta_main
 
-def pick_by_policy(df_ROE, df_div, policy):
+def select_df_by_index(stock, df_ROE, df_div, df_price, index):
+	found_index = False
+	to_pick = True
+	if index in df_ROE.columns:
+		df = df_ROE
+		df = df.loc[df['stock']==stock]
+		found_index = True
+	if index in df_div.columns:
+		df = df_div
+		df = df.loc[df['stock']==stock]
+		found_index = True
+	if index in df_price.columns:
+		df = df_price
+		found_index = True
+	return found_index, df
+
+def simple_compare(stock, df_ROE, df_div, df_price, cond):
+	index = cond['index']
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	if found_index == False:
+		return False
+		
+
+	to_pick = True
+	if cond['method'] == 'mean':
+		targetIdx = np.mean(df[index].values)
+	if cond['method'] == 'std':
+		targetIdx = np.std(df[index].values)
+	if cond['method'] == 'median':
+		targetIdx = np.median(df[index].values)
+	if cond['method'] == 'latest':
+		targetIdx = df[index].tail(1).values[0]
+		
+	if targetIdx < cond['min'] or targetIdx > cond['max']:
+		to_pick = False				
+	
+	return to_pick
+
+def compare_against_mean_std(stock, df_ROE, df_div, df_price, cond):
+	index = cond['index']
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	if found_index == False:
+		return False
+	
+	period = 1
+	if 'period' in cond:
+		total = len(df)
+		if (total > cond['period']):
+			df = df[total-cond['period']:]		
+	
+	to_pick = True
+	std = np.std(df[index])
+	mean = np.mean(df[index])
+	min = mean + std*cond['min']
+	max = mean + std*cond['max']
+	targetIdx =df_price[index].tail(1).values[0]
+	
+	if targetIdx < min or targetIdx > max:
+		to_pick = False
+	print('{} clos {}, std {:.2f}, mean {:.2f}, range {:.2f}-{:.2f}'.format(stock, targetIdx, std, mean, min, max))
+	return to_pick
+	
+def std_distribution(stock, df_ROE, df_div, df_price, cond):
+	index = cond['index']
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	if found_index == False:
+		return False
+
+	to_pick = True
+	period = 1
+	if 'period' in cond:
+		total = len(df)
+		if (total > cond['period']):
+			df = df[total-cond['period']:]	
+			
+	std = np.std(df[index])
+	mean = np.mean(df[index])
+	df_ok = df[abs(df[index]-mean) <= std*cond['sigma']]
+	ratio = float(len(df_ok))/len(df)*100
+	if (ratio < cond['ratio']):
+		to_pick = False
+
+	return to_pick
+	
+def detect_abnormal(stock, df_ROE, df_div, df_price, cond):
+	index = cond['index']
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	if found_index == False:
+		return False	
+
+	to_pick = True
+	method = cond['method']
+	ratio = cond['ratio']
+	times = cond['times']
+	interval = cond['interval']
+	if method == 'above_mean':
+		mean = np.mean(df[index])
+		df_ok = df[df[index] >= ratio * mean]
+		indexs = df_ok.index
+		indexs1 = indexs[1:]
+		indexs = indexs[:len(indexs)-1]
+		indexs = np.subtract(indexs1,indexs)
+		indexs = np.where(indexs <= interval)[0]
+		#print('{}: abnormal {}'.format(stock, len(indexs)))
+		if len(indexs) < times:
+			to_pick = False				
+		#else:
+		#	print('pick {}'.format(stock, len(indexs)))
+		
+	return to_pick
+
+funcdict = {
+	'simple_compare': simple_compare,
+	'compare_against_mean_std': compare_against_mean_std,
+	'select_df_by_index': select_df_by_index,
+	'std_distribution': std_distribution,
+}
+
+	
+def pick_by_policy(df_ROE, df_div, fname):
 	reason = ''
 	# check buy
-	stockList = set(df_ROE['stock'].values.tolist()+df_div['stock'].values.tolist())
-	stockList = [s for s in stockList]
-	stockList = sorted(stockList)
+	no_condition = False
+	
+	
+	if 'csv' in fname:
+		no_condition = True
+		stockList = readStockList('policy/'+fname)
+	else:
+		policy = readPolicy('policy/'+fname)
+		stockList = set(df_ROE['stock'].values.tolist()+df_div['stock'].values.tolist())
+		stockList = [s for s in stockList]
+		stockList = sorted(stockList)
 	pickList = []
 	for stock in stockList:
-		to_pick = True
 		empty, df_price = readStockHistory(stock, 9999, raw=False)
 		if empty == True:
 			continue
-		for cond in policy['tactic']['condition']:
-			index = cond['index']
-			found_index = False
-			if index in df_ROE.columns:
-				df = df_ROE
-				df = df.loc[df['stock']==stock]
-				found_index = True
-			if index in df_div.columns:
-				df = df_div
-				df = df.loc[df['stock']==stock]
-				found_index = True
-			if (empty == False) and (index in df_price.columns) :
-				df = df_price
-				found_index = True
-			if found_index == False:
-				to_pick = False
-				break
+			
+		try:
+			name = df_ROE['name'][df_ROE['stock']==stock].values[0]
+		except:
+			name = stock
 
-			period = 1
-			if 'period' in cond:
-				total = len(df)
-				if (total > cond['period']):
-					df = df[total-cond['period']:]
-			try:
-				name = df_ROE['name'][df_ROE['stock']==stock].values[0]
-			except:
-				name = stock
-			price = df_price['close'].tail(1).values[0]
-			std_price = np.std(df_price['close'])
-			mean_price = np.mean(df_price['close'])
-			if cond['type'] == 'absolute':
-				targetIdx = np.mean(df[index].values)
-				if targetIdx < cond['min'] or targetIdx > cond['max']:
-					to_pick = False				
+		price = df_price['close'].tail(1).values[0]
+		std_price = np.std(df_price['close'])
+		mean_price = np.mean(df_price['close'])
+		
+		if no_condition == False:
+			for cond in policy['tactic']['condition']:
+
+				func = funcdict[cond['function']]
+				to_pick = func(stock, df_ROE, df_div, df_price, cond)
+				if to_pick == False:
 					break
-					
-			if cond['type'] == 'std_distribution':
-				std = np.std(df[index])
-				mean = np.mean(df[index])
-				df_ok = df[abs(df[index]-mean) <= std*cond['sigma']]
-				ratio = float(len(df_ok))/len(df)*100
-				if (ratio < cond['ratio']):
-					to_pick = False				
-					break
-					
-			if cond['type'] == 'detect_abnormal':
-				method = cond['method']
-				ratio = cond['ratio']
-				times = cond['times']
-				interval = cond['interval']
-				if method == 'above_mean':
-					mean = np.mean(df[index])
-					df_ok = df[df[index] >= ratio * mean]
-					indexs = df_ok.index
-					indexs1 = indexs[1:]
-					indexs = indexs[:len(indexs)-1]
-					indexs = np.subtract(indexs1,indexs)
-					indexs = np.where(indexs <= interval)[0]
-					#print('{}: abnormal {}'.format(stock, len(indexs)))
-					if len(indexs) < times:
-						to_pick = False				
-						break
-					else:
-						print('pick {}'.format(stock, len(indexs)))
-				if method == 'above_median':
-					median = np.mean(df[index])
 					
 		if to_pick == True:
 			pickList.append((stock, name, price, std_price, mean_price))
@@ -108,14 +185,15 @@ def main():
 	
 	df_ROE=readROEHistory('ROE_2006_2017.csv')
 	df_div_eng, _ = readDividenHistory('dividen.csv')
-	policy = readPolicy('policy/'+args['pick'])
-	pickList = pick_by_policy(df_ROE, df_div_eng, policy)
+
+	pickList = pick_by_policy(df_ROE, df_div_eng, args['pick'])
 
 	if len(pickList) == 0:
 		print('No matching!!!')
 		return
 
 	# create output folder
+	
 	path = 'test_result/'+args['pick'].split('.')[0]
 	os.makedirs(path, exist_ok=True)
 
@@ -132,24 +210,27 @@ def main():
 	for (stock, name, price, std_price, mean_price) in pickList:
 
 		# write stock list
-		nameListFile.write('{},{}\n'.format(stock, name))
-		row = df_div_eng.loc[df_div_eng['stock']==stock]
-		_mean_div_all = row['mean_div_all'].values[0]
-		_std_div_all = row['std_div_all'].values[0]
-		_mean_yield = row['mean_yield'].values[0]
-		_std_yield = row['std_yield'].values[0]
-		_div_2018_all = row['div_2018_all'].values[0]
-		_yield_2018 = row['yield_2018'].values[0]
-		_div_2017_all = row['div_2017_all'].values[0]
-		_yield_2017 = row['yield_2017'].values[0]
-		valList = [	stock, name, price, mean_price, std_price,
-					_mean_div_all, _std_div_all, 
-					_mean_yield, _std_yield,
-					_div_2018_all, _yield_2018,
-					_div_2017_all, _yield_2017
-					]
-		_new = pd.DataFrame([valList], columns=colList)
-		df_pick = df_pick.append(_new, ignore_index=True)
+		try:
+			row = df_div_eng.loc[df_div_eng['stock']==stock]
+			_mean_div_all = row['mean_div_all'].values[0]
+			_std_div_all = row['std_div_all'].values[0]
+			_mean_yield = row['mean_yield'].values[0]
+			_std_yield = row['std_yield'].values[0]
+			_div_2018_all = row['div_2018_all'].values[0]
+			_yield_2018 = row['yield_2018'].values[0]
+			_div_2017_all = row['div_2017_all'].values[0]
+			_yield_2017 = row['yield_2017'].values[0]
+			valList = [	stock, name, price, mean_price, std_price,
+						_mean_div_all, _std_div_all, 
+						_mean_yield, _std_yield,
+						_div_2018_all, _yield_2018,
+						_div_2017_all, _yield_2017
+						]
+			_new = pd.DataFrame([valList], columns=colList)
+			nameListFile.write('{},{}\n'.format(stock, name))
+			df_pick = df_pick.append(_new, ignore_index=True)
+		except:
+			continue
 	
 	nameListFile.close()
 	df_pick=df_pick.sort_values(by=['平均殖利率'], ascending=False)
@@ -161,7 +242,7 @@ def main():
 	df_pick.to_excel(writer, float_format='%.2f')
 	writer.save()
 
-	if (args['evaluate'] != '') or (args['tindex'] != ''):
+	if (args['evaluate'] != '') or (args['tindex'] == True):
 		args['file'] = nameListFileName
 		args['stock'] = ''
 		args['visualize'] = False

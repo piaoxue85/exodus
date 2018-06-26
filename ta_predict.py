@@ -384,11 +384,24 @@ class ta_predict():
 			for cond in tactic['condition']:
 				index = cond['index']
 				if cond['type'] == 'absolute':
-					targetIdx = y_row[index]
-				# if can't meet to min/max requirement, don't do
-				if targetIdx < cond['min'] or targetIdx > cond['max']:
-					shares_to_buy = 0
-					break
+					if 'method' not in list(cond.keys()):
+						targetIdx = y_row[index]
+						# if can't meet to min/max requirement, don't do
+						if targetIdx < cond['min'] or targetIdx > cond['max']:
+							shares_to_buy = 0
+							break
+					else:
+						if cond['method'] == 'STD':
+							targetIdx = y_row[index]
+							_mean = np.mean(self.df[index][:yesterday])
+							_std = np.std(self.df[index][:yesterday])
+							min = _mean + cond['min']*_std
+							max = _mean + cond['max']*_std
+							print('check {} : close {}, mean {:.2f}, std {:.2f} ({:.2f}~{:.2f})'.format(t_row['DateStr'], targetIdx, _mean, _std, min, max))
+							if targetIdx < min or targetIdx > max:
+								shares_to_buy = 0
+								break
+							
 				buy_reason = buy_reason+index+' '+"{:.01f}".format(targetIdx)+','
 					
 		# check sell
@@ -436,15 +449,25 @@ class ta_predict():
 			price = self.df['open'].loc[today]
 			date = self.df['Date'].loc[today]
 			df_div = utility.readDividenByStockYear(str(date.year), self.stock)
-			div_stock = df_div['div_stock'].values[0]
-			div_cash = df_div['div_cash'].values[0]
-			div_stock_date = df_div['div_stock_date'].values[0]
-			div_cash_date = df_div['div_cash_date'].values[0]
+			try:
+				div_stock = df_div['div_stock'].values[0]
+				div_cash = df_div['div_cash'].values[0]
+				div_stock_date = df_div['div_stock_date'].values[0]
+				div_cash_date = df_div['div_cash_date'].values[0]
+			except:
+				div_stock = 0
+				div_cash = 0
+				div_stock_date = '0000-00-00'
+				div_cash_date = '0000-00-00'
+			reason_div = ''
 			if (div_stock_date == self.df['DateStr'].loc[today]):
 				self.shares = self.shares * (1+div_stock/10)
+				self.df['close'][:today] = self.df['close'][:today] / (1+div_stock/10)
+				reason_div = 'div stoc '+str(div_stock)
 			if (div_cash_date == self.df['DateStr'].loc[today]):
-				self.cash = self.cash+self.shares * (div_stock/10) * self.df['open'].loc[today]
-
+				self.cash = self.cash+self.shares * div_cash
+				self.df['close'][:today] = self.df['close'][:today] - div_cash
+				reason_div = reason_div + 'div cash '+str(div_cash)
 			#print('{} {}:: div {} on {}, {} on {}'.format(self.stock, date.year, div_stock, div_stock_date, div_cash, div_cash_date))
 			total_value = self.cash + self.shares * self.df['open'].loc[today]
 			if (yesterday == None):
@@ -470,7 +493,7 @@ class ta_predict():
 					self.cash = self.cash + sell * price
 
 				total_value = self.cash + self.shares * price
-				trade_history.append([date, reason, buy, price, self.shares, self.cash, total_value])
+				trade_history.append([date, reason+reason_div, buy, price, self.shares, self.cash, total_value])
 			#print('trade {}: {} {} {:.2f} {} {:.2f} {:.2f} '.format(self.df['DateStr'].loc[today], reason.ljust(30), buy, price, self.shares, self.cash, total_value))
 			yesterday = today
 		return pd.DataFrame(trade_history, columns=['Date', 'Reason', 'Buy', 'Price', 'Own', 'Cash', 'Total'])		
