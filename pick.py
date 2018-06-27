@@ -98,6 +98,12 @@ def detect_abnormal(stock, df_ROE, df_div, df_price, cond):
 	if found_index == False:
 		return False	
 
+	period = 1
+	if 'period' in cond:
+		total = len(df)
+		if (total > cond['period']):
+			df = df[total-cond['period']:]		
+
 	to_pick = True
 	method = cond['method']
 	ratio = cond['ratio']
@@ -124,6 +130,7 @@ funcdict = {
 	'compare_against_mean_std': compare_against_mean_std,
 	'select_df_by_index': select_df_by_index,
 	'std_distribution': std_distribution,
+	'detect_abnormal': detect_abnormal,
 }
 
 	

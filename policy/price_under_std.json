@@ -19,7 +19,16 @@
                 "type": "absolute",
                 "min": 0.1,
                 "max": 9999.0
-            }
+            },
+            {
+                "index": "volume",
+                "function": "detect_abnormal",
+                "method": "above_mean",
+                "period": 30,
+                "interval": 10,
+                "ratio": 2,
+                "times": 1
+            }            
         ]
     }
 }
