@@ -14,16 +14,6 @@ from collections import OrderedDict
 import datetime
 import json
 
-def find_by_volume(df, id, name, ratio=5.0):
-	vol_median = df['volume'].median()
-	currentPrice = df['close'].tail(1).values[0]
-	for index, row in df.iterrows():
-		if row['volume'] >= (ratio * vol_median) and vol_median > 1000:
-			print('{} {} {} ${}(current {}) volume {} > {}'.format(id, name, 
-														row['DateStr'], 
-														row['close'], currentPrice,
-														row['volume'], 
-														vol_median))
 def readPolicy(path):
 	json_data=open(path)
 	policy = json.load(json_data)
@@ -147,7 +137,7 @@ def main(args):
 		writer = pd.ExcelWriter(evaluatePath+'/total_return.xlsx')
 		df_invest_return.to_excel(writer, float_format='%.2f')
 		writer.save()		
-		#find_by_volume(df_main, stock_id, stock_name)
+
 if __name__ == '__main__':
 
 	ap = argparse.ArgumentParser()

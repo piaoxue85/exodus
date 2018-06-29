@@ -536,6 +536,9 @@ def translateDividenHistory(outfile):
 								'payout_ratio_2016', 'yield_2016',
 								'payout_ratio_2017', 'yield_2017',
 								'payout_ratio_2018', 'yield_2018',
+ 								'eps_2006', 'eps_2007', 'eps_2008', 'eps_2009', 'eps_2010', 'eps_2011',
+								'eps_2012', 'eps_2013', 'eps_2014', 'eps_2015', 'eps_2016', 'eps_2017',
+								'eps_2018'
 								])
 	for (f, _year) in divident_list:
 		df_orig = pd.read_csv('history/'+f)
@@ -570,6 +573,7 @@ def translateDividenHistory(outfile):
 			df_div['div_'+year+'_all'].loc[df_div['stock']==stock] = div_all
 			df_div['yield_'+year].loc[df_div['stock']==stock] = _yield
 			df_div['payout_ratio_'+year].loc[df_div['stock']==stock] = _ratio
+			df_div['eps_'+year].loc[df_div['stock']==stock] = row['所屬EPS']
 		#break
 	df_div.fillna(0, inplace=True)
 	df_div['std_yield']=pd.Series([float(0)]*len(df_div), df_div.index)
@@ -630,19 +634,19 @@ def translateDividenHistory(outfile):
 	df_div = df_div[['stock', 'name', 
 					'mean_div_all', 'std_div_all',
 					'mean_yield', 'std_yield', 'mean_payout', 'std_payout',
-					'yield_2018', 'payout_ratio_2018', 'div_2018_all', 'div_2018_cash', 'div_2018_stock',
-					'yield_2017', 'payout_ratio_2017', 'div_2017_all', 'div_2017_cash', 'div_2017_stock',
-					'yield_2016', 'payout_ratio_2016', 'div_2016_all', 'div_2016_cash', 'div_2016_stock',
-					'yield_2015', 'payout_ratio_2015', 'div_2015_all', 'div_2015_cash', 'div_2015_stock',
-					'yield_2014', 'payout_ratio_2014', 'div_2014_all', 'div_2014_cash', 'div_2014_stock',
-					'yield_2013', 'payout_ratio_2013', 'div_2013_all', 'div_2013_cash', 'div_2013_stock',
-					'yield_2012', 'payout_ratio_2012', 'div_2012_all', 'div_2012_cash', 'div_2012_stock',
-					'yield_2011', 'payout_ratio_2011', 'div_2011_all', 'div_2011_cash', 'div_2011_stock',
-					'yield_2010', 'payout_ratio_2010', 'div_2010_all', 'div_2010_cash', 'div_2010_stock',
-					'yield_2009', 'payout_ratio_2009', 'div_2009_all', 'div_2009_cash', 'div_2009_stock',
-					'yield_2008', 'payout_ratio_2008', 'div_2008_all', 'div_2008_cash', 'div_2008_stock',
-					'yield_2007', 'payout_ratio_2007', 'div_2007_all', 'div_2007_cash', 'div_2007_stock',
-					'yield_2006', 'payout_ratio_2006', 'div_2006_all', 'div_2006_cash', 'div_2006_stock', 
+					'eps_2018', 'yield_2018', 'payout_ratio_2018', 'div_2018_all', 'div_2018_cash', 'div_2018_stock',
+					'eps_2017', 'yield_2017', 'payout_ratio_2017', 'div_2017_all', 'div_2017_cash', 'div_2017_stock',
+					'eps_2016', 'yield_2016', 'payout_ratio_2016', 'div_2016_all', 'div_2016_cash', 'div_2016_stock',
+					'eps_2015', 'yield_2015', 'payout_ratio_2015', 'div_2015_all', 'div_2015_cash', 'div_2015_stock',
+					'eps_2014', 'yield_2014', 'payout_ratio_2014', 'div_2014_all', 'div_2014_cash', 'div_2014_stock',
+					'eps_2013', 'yield_2013', 'payout_ratio_2013', 'div_2013_all', 'div_2013_cash', 'div_2013_stock',
+					'eps_2012', 'yield_2012', 'payout_ratio_2012', 'div_2012_all', 'div_2012_cash', 'div_2012_stock',
+					'eps_2011', 'yield_2011', 'payout_ratio_2011', 'div_2011_all', 'div_2011_cash', 'div_2011_stock',
+					'eps_2010', 'yield_2010', 'payout_ratio_2010', 'div_2010_all', 'div_2010_cash', 'div_2010_stock',
+					'eps_2009', 'yield_2009', 'payout_ratio_2009', 'div_2009_all', 'div_2009_cash', 'div_2009_stock',
+					'eps_2008', 'yield_2008', 'payout_ratio_2008', 'div_2008_all', 'div_2008_cash', 'div_2008_stock',
+					'eps_2007', 'yield_2007', 'payout_ratio_2007', 'div_2007_all', 'div_2007_cash', 'div_2007_stock',
+					'eps_2006', 'yield_2006', 'payout_ratio_2006', 'div_2006_all', 'div_2006_cash', 'div_2006_stock', 
 				]]
 								
 
@@ -659,18 +663,18 @@ def readDividenHistory(fname):
 									'std_yield':'殖利率標準差',
 									'mean_payout':'平均配息率',
 									'std_payout':'配息率標準差',
-									'yield_2018':'2018殖利率', 'payout_ratio_2018':'2018配息率', 'div_2018_all':'2018股利+現金', 'div_2018_cash':'2018現金', 'div_2018_stock':'2018股票',
-									'yield_2017':'2017殖利率', 'payout_ratio_2017':'2017配息率', 'div_2017_all':'2017股利+現金', 'div_2017_cash':'2017現金', 'div_2017_stock':'2017股票',
-									'yield_2016':'2016殖利率', 'payout_ratio_2016':'2016配息率', 'div_2016_all':'2016股利+現金', 'div_2016_cash':'2016現金', 'div_2016_stock':'2016股票',
-									'yield_2015':'2015殖利率', 'payout_ratio_2015':'2015配息率', 'div_2015_all':'2015股利+現金', 'div_2015_cash':'2015現金', 'div_2015_stock':'2015股票',
-									'yield_2014':'2014殖利率', 'payout_ratio_2014':'2014配息率', 'div_2014_all':'2014股利+現金', 'div_2014_cash':'2014現金', 'div_2014_stock':'2014股票',
-									'yield_2013':'2013殖利率', 'payout_ratio_2013':'2013配息率', 'div_2013_all':'2013股利+現金', 'div_2013_cash':'2013現金', 'div_2013_stock':'2013股票',
-									'yield_2012':'2012殖利率', 'payout_ratio_2012':'2012配息率', 'div_2012_all':'2012股利+現金', 'div_2012_cash':'2012現金', 'div_2012_stock':'2012股票',
-									'yield_2011':'2011殖利率', 'payout_ratio_2011':'2011配息率', 'div_2011_all':'2011股利+現金', 'div_2011_cash':'2011現金', 'div_2011_stock':'2011股票',
-									'yield_2010':'2010殖利率', 'payout_ratio_2010':'2010配息率', 'div_2010_all':'2010股利+現金', 'div_2010_cash':'2010現金', 'div_2010_stock':'2010股票',
-									'yield_2009':'2009殖利率', 'payout_ratio_2009':'2009配息率', 'div_2009_all':'2009股利+現金', 'div_2009_cash':'2009現金', 'div_2009_stock':'2009股票',
-									'yield_2008':'2008殖利率', 'payout_ratio_2008':'2008配息率', 'div_2008_all':'2008股利+現金', 'div_2008_cash':'2008現金', 'div_2008_stock':'2008股票',
-									'yield_2007':'2007殖利率', 'payout_ratio_2007':'2007配息率', 'div_2007_all':'2007股利+現金', 'div_2007_cash':'2007現金', 'div_2007_stock':'2007股票',
-									'yield_2006':'2006殖利率', 'payout_ratio_2006':'2006配息率', 'div_2006_all':'2006股利+現金', 'div_2006_cash':'2006現金', 'div_2006_stock':'2006股票',
+									'eps_2018':'2018EPS', 'yield_2018':'2018殖利率', 'payout_ratio_2018':'2018配息率', 'div_2018_all':'2018股利+現金', 'div_2018_cash':'2018現金', 'div_2018_stock':'2018股票',
+									'eps_2017':'2017EPS', 'yield_2017':'2017殖利率', 'payout_ratio_2017':'2017配息率', 'div_2017_all':'2017股利+現金', 'div_2017_cash':'2017現金', 'div_2017_stock':'2017股票',
+									'eps_2016':'2016EPS', 'yield_2016':'2016殖利率', 'payout_ratio_2016':'2016配息率', 'div_2016_all':'2016股利+現金', 'div_2016_cash':'2016現金', 'div_2016_stock':'2016股票',
+									'eps_2015':'2015EPS', 'yield_2015':'2015殖利率', 'payout_ratio_2015':'2015配息率', 'div_2015_all':'2015股利+現金', 'div_2015_cash':'2015現金', 'div_2015_stock':'2015股票',
+									'eps_2014':'2014EPS', 'yield_2014':'2014殖利率', 'payout_ratio_2014':'2014配息率', 'div_2014_all':'2014股利+現金', 'div_2014_cash':'2014現金', 'div_2014_stock':'2014股票',
+									'eps_2013':'2013EPS', 'yield_2013':'2013殖利率', 'payout_ratio_2013':'2013配息率', 'div_2013_all':'2013股利+現金', 'div_2013_cash':'2013現金', 'div_2013_stock':'2013股票',
+									'eps_2012':'2012EPS', 'yield_2012':'2012殖利率', 'payout_ratio_2012':'2012配息率', 'div_2012_all':'2012股利+現金', 'div_2012_cash':'2012現金', 'div_2012_stock':'2012股票',
+									'eps_2011':'2011EPS', 'yield_2011':'2011殖利率', 'payout_ratio_2011':'2011配息率', 'div_2011_all':'2011股利+現金', 'div_2011_cash':'2011現金', 'div_2011_stock':'2011股票',
+									'eps_2010':'2010EPS', 'yield_2010':'2010殖利率', 'payout_ratio_2010':'2010配息率', 'div_2010_all':'2010股利+現金', 'div_2010_cash':'2010現金', 'div_2010_stock':'2010股票',
+									'eps_2009':'2009EPS', 'yield_2009':'2009殖利率', 'payout_ratio_2009':'2009配息率', 'div_2009_all':'2009股利+現金', 'div_2009_cash':'2009現金', 'div_2009_stock':'2009股票',
+									'eps_2008':'2008EPS', 'yield_2008':'2008殖利率', 'payout_ratio_2008':'2008配息率', 'div_2008_all':'2008股利+現金', 'div_2008_cash':'2008現金', 'div_2008_stock':'2008股票',
+									'eps_2007':'2007EPS', 'yield_2007':'2007殖利率', 'payout_ratio_2007':'2007配息率', 'div_2007_all':'2007股利+現金', 'div_2007_cash':'2007現金', 'div_2007_stock':'2007股票',
+									'eps_2006':'2006EPS', 'yield_2006':'2006殖利率', 'payout_ratio_2006':'2006配息率', 'div_2006_all':'2006股利+現金', 'div_2006_cash':'2006現金', 'div_2006_stock':'2006股票',
 								})
 	return df_eng, df_cht

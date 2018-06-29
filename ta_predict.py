@@ -17,6 +17,7 @@ class ta_draw(object):
 		#matplotlib.rc('font', family='Arial')
 		#plt.rc('font', family='simhei')
 		plt.rcParams['font.sans-serif'] = ['simhei']
+		plt.rcParams['figure.figsize'] = [16, 9]
 		self.ax1_orig_xlim = None
 		self.ax1_txt = None
 		self.ax2_txt = None
@@ -212,10 +213,13 @@ class ta_draw(object):
 		# plot the close value
 		ax1.plot(self.df['Date'], self.df['close'])
 		# draw grid
-		ax1.grid()		
+		ax1.grid()
+		
+		_text = '收盤價 ' + str(ymin) + ' ~ ' + str(ymax)
+		
 		
 		# set ax1_1 y lim by volume
-		ymin = np.min(self.df['volume'])
+		ymin = np.min(self.df['volume'].loc[self.df['volume']!=0])
 		ymax = np.max(self.df['volume'])
 		ax1_1.set_ylim(ymin, ymax)
 		# set y label for ax1_1
@@ -223,7 +227,9 @@ class ta_draw(object):
 		# plot the volume value
 		ax1_1.plot(self.df['Date'], self.df['volume'], 'C1', label='Vol')
 		# draw grid
-		ax1_1.grid(color='C1', linestyle='-', linewidth=0.5)		
+		ax1_1.grid(color='C1', linestyle='-', linewidth=0.5)
+		_text = _text + '    成交量 ' + str(ymin) + ' ~ ' + str(ymax)	
+		ax1.text(0, 1.02, _text, transform=ax1.transAxes, fontsize=18)		
 
 		# ask matplotlib for the plotted objects and their labels
 		lines, labels = ax1.get_legend_handles_labels()
@@ -240,7 +246,7 @@ class ta_draw(object):
 		self.ax1_1 = self.ax1.twinx()
 		
 		# set figure 
-		self.fig.suptitle(self.title)
+		self.fig.suptitle(self.title, fontsize=18)
 		self.fig.autofmt_xdate(rotation=30)
 		
 		# for x-axis tick label
@@ -316,13 +322,51 @@ class ta_draw(object):
 		else:
 			plt.savefig(self.pngName)
 			
+	def draw_price_volume(self, title=''):
+		
+		self.fig, self.ax1, = plt.subplots(1, 1, sharex=True)
+			
+		self.ax1_1 = self.ax1.twinx()
+		
+		# set figure 
+		self.fig.suptitle(self.title+title, fontsize=24)
+		self.fig.autofmt_xdate(rotation=30)
+		
+		# for x-axis tick label
+		xtick_locator = AutoDateLocator()
+		xtick_formatter = AutoDateFormatter(xtick_locator)
+		self.ax1.xaxis.set_major_locator(xtick_locator)
+		self.ax1.xaxis.set_major_formatter(xtick_formatter)
+		
+		self.draw_basic(self.ax1, self.ax1_1)
+		
+		plt.connect('motion_notify_event', self.mouse_move)	
+		#plt.connect('scroll_event', cursor.on_scroll)
+		plt.connect('button_press_event', self.on_scroll)
+		plt.connect('key_press_event', self.on_key)
+	
+		# set mouse scroll event
+
+		# draw lines for cursor focus
+		self.lx1 = self.ax1.axhline(color='k', y=self.y1_df.loc[0], linewidth=0.5, linestyle='--')  # the horiz line
+		self.ly1 = self.ax1.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line
+		
+		# text location in axes coords
+
+		self.txt1 = self.ax1.text(0, 1.05, "", transform=self.ax1.transAxes)
+		
+		if self.pngName == None:
+			plt.show()		
+		else:
+			plt.savefig(self.pngName)			
+			
 			
 	def draw_ta(self, type, pngName):
 		self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, sharex=True)
 		self.ax1_1 = self.ax1.twinx()
 		
 		# set figure 
-		self.fig.suptitle(self.title + '   ' + type)
+		self.fig.suptitle(self.title + '   ' + type, fontsize=24)
 		self.fig.autofmt_xdate(rotation=30)
 		
 		# for x-axis tick label
@@ -360,10 +404,34 @@ class ta_draw(object):
 			self.ax2_lines['macdhist'] = self.ax2.plot(self.df['Date'], self.df['macdhist'])[0]
 			self.ax2.legend(['MACD', 'Signal', 'HIST'], loc='upper left')	
 
+		if type == 'PER':
+			# plot the PER
+			self.fig.suptitle(self.title + '   ' + '本益比', fontsize=18)
+			self.ax2_lines = dict()
+			self.ax2_lines['PER'] = self.ax2.plot(self.df['Date'], self.df['PER'])[0]
+			min = self.df['PER'].min()
+			max = self.df['PER'].max()
+			current = self.df['PER'].tail(1).values[0]
+			_text = '本益比 最高 '+ str(max) + ' 最低 ' + str(min) + '   目前 '+str(current)
+			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
+			
+		if type == 'revenue':
+			# plot the PER
+			self.fig.suptitle(self.title + '   ' + '營收', fontsize=18)
+			self.ax2_lines = dict()
+			self.ax2_lines['revenue'] = self.ax2.plot(self.df['Date'], self.df['revenue'])[0]
+			min = self.df['revenue'].loc[self.df['revenue']!=0].min()/1000
+			max = self.df['revenue'].max()/1000
+			current = self.df['revenue'].loc[self.df['revenue']!=0].tail(1).values[0]/1000
+			_text = '營收(百萬) 最高 '+ str(max) + ' 最低 ' + str(min) + '   目前 '+str(current)
+			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
+			
 		if pngName == None:
 			plt.show()		
 		else:
 			plt.savefig(pngName)
+			
+			
 			
 class ta_predict():
 	def __init__(self, stock, df):

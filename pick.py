@@ -7,6 +7,7 @@ import argparse
 from collections import OrderedDict
 import datetime
 import ta_main
+import info_main
 
 def select_df_by_index(stock, df_ROE, df_div, df_price, index):
 	found_index = False
@@ -170,7 +171,8 @@ def pick_by_policy(df_ROE, df_div, fname):
 				to_pick = func(stock, df_ROE, df_div, df_price, cond)
 				if to_pick == False:
 					break
-					
+		else:
+			to_pick = True
 		if to_pick == True:
 			pickList.append((stock, name, price, std_price, mean_price))
 			#break
@@ -184,6 +186,7 @@ def main():
 	ap.add_argument("-e", "--evaluate", required=False, default='')
 	ap.add_argument("-t", "--tindex", required=False, default=False, action='store_true')
 	ap.add_argument("-g", "--graphics", required=False, default=False, action='store_true')
+	ap.add_argument("-i", "--info", required=False, default=False, action='store_true')
 	ap.add_argument("-d", "--debug", required=False, default=False, action='store_true')
 
 	args = vars(ap.parse_args())
@@ -255,6 +258,13 @@ def main():
 		args['visualize'] = False
 		args['path'] = path
 		ta_main.main(args)
+		
+	if args['info'] == True:
+		args['file'] = nameListFileName
+		args['stock'] = ''
+		args['visualize'] = False
+		args['path'] = path
+		info_main.main(args)
 
 if __name__ == '__main__':
 	main()
