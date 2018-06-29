@@ -50,26 +50,40 @@ def main():
 		df_ROE.to_excel(writer, float_format='%.2f')
 		writer.save()
 		
-	stockList = readStockList('all_stock.csv')
-	for stock in stockList:
-		df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
-		if df_main.empty == True:
-			print('no data')
-			continue
-		#if '2018-06-01' in df_main['DateStr'].values:
-		dateStr = ['2018-05-31', '2018-06-01', '2018-06-04', '2018-06-05', '2018-06-06', '2018-06-07', '2018-06-08']
-		for _date in dateStr:
-			if _date not in df_main['DateStr'].values:
+	if False:
+		stockList = readStockList('all_stock.csv')
+		for stock in stockList:
+			df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
+			if df_main.empty == True:
+				print('no data')
 				continue
-			vol = df_main['volume'].loc[df_main['DateStr']==_date].values[0]
-			vol = float(int(vol/1000))
-			df_main['volume'].loc[df_main['DateStr']==_date]=vol
-		#df_main['volume'].loc[df_main['DateStr']=='2018-06-01']=df_main['volume'].loc[df_main['DateStr']=='2018-06-01']/1000
-		#df_main['volume'].loc[df_main['DateStr']=='2018-06-04']=df_main['volume'].loc[df_main['DateStr']=='2018-06-04']/1000
-		#df_main['volume'].loc[df_main['DateStr']=='2018-06-05']=df_main['volume'].loc[df_main['DateStr']=='2018-06-05']/1000
-		#df_main['volume'].loc[df_main['DateStr']=='2018-06-06']=df_main['volume'].loc[df_main['DateStr']=='2018-06-06']/1000
-		#df_main['volume'].loc[df_main['DateStr']=='2018-06-07']=df_main['volume'].loc[df_main['DateStr']=='2018-06-07']/1000
-		#df_main['volume'].loc[df_main['DateStr']=='2018-06-08']=df_main['volume'].loc[df_main['DateStr']=='2018-06-08']/1000
-		#print(df_main)
-		df_main.to_csv('history.new/'+stock+'.csv')
+			#if '2018-06-01' in df_main['DateStr'].values:
+			dateStr = ['2018-05-31', '2018-06-01', '2018-06-04', '2018-06-05', '2018-06-06', '2018-06-07', '2018-06-08']
+			for _date in dateStr:
+				if _date not in df_main['DateStr'].values:
+					continue
+				vol = df_main['volume'].loc[df_main['DateStr']==_date].values[0]
+				vol = float(int(vol/1000))
+				df_main['volume'].loc[df_main['DateStr']==_date]=vol
+			#df_main['volume'].loc[df_main['DateStr']=='2018-06-01']=df_main['volume'].loc[df_main['DateStr']=='2018-06-01']/1000
+			#df_main['volume'].loc[df_main['DateStr']=='2018-06-04']=df_main['volume'].loc[df_main['DateStr']=='2018-06-04']/1000
+			#df_main['volume'].loc[df_main['DateStr']=='2018-06-05']=df_main['volume'].loc[df_main['DateStr']=='2018-06-05']/1000
+			#df_main['volume'].loc[df_main['DateStr']=='2018-06-06']=df_main['volume'].loc[df_main['DateStr']=='2018-06-06']/1000
+			#df_main['volume'].loc[df_main['DateStr']=='2018-06-07']=df_main['volume'].loc[df_main['DateStr']=='2018-06-07']/1000
+			#df_main['volume'].loc[df_main['DateStr']=='2018-06-08']=df_main['volume'].loc[df_main['DateStr']=='2018-06-08']/1000
+			#print(df_main)
+			df_main.to_csv('history.new/'+stock+'.csv')
+	if True:
+		df = pd.read_csv('history/8299.TWO.csv', delim_whitespace=False, header=0)
+		df = df.dropna()
+		df = df.drop('Adj Close', 1)
+		df['Date'] = pd.to_datetime(df.Date)
+		df['DateStr'] = df['Date'].dt.strftime('%Y-%m-%d')
+		df.rename(columns={'Open': 'open', 'Close': 'close', \
+						'High': 'high', 'Low': 'low', 'Volume': 'volume'
+						}, inplace=True)
+		df.reset_index(drop=True, inplace=True)
+		print('')
+		df.to_csv('history/8299.csv')
+
 main()

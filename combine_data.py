@@ -31,7 +31,7 @@ def main():
 				revenue = get_monthly_revenus(stock, dt.year, dt.month)
 				df_main['revenue'].at[index] = revenue
 		print('Combin {}'.format(stock))
-		df_main.to_csv('history_combine/'+stock+'.csv')
+		df_main.to_csv('history/'+stock+'.csv')
 		#break
 	#print(df_main)
 main()
