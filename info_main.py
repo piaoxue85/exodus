@@ -139,7 +139,7 @@ def main(args):
 		(stock_id, stock_name) = stockList[stock]
 		df_div = output_div(stock_id, df_main, df_div_all)
 
-		stockPath = evaluatePath + stock
+		stockPath = evaluatePath + stock + '_' + stock_name
 		os.makedirs(stockPath, exist_ok=True)
 		pngName = stockPath+'/price_volume.png'
 		draw = ta_draw(stock_id+'  '+stock_name, df_main, None, pngName)
