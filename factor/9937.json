@@ -1,0 +1,10 @@
+{
+	"name": "全國",
+	"factor":
+	[
+		{
+			"name": "oil price",
+			"effect": "negative"
+		}
+	]
+}

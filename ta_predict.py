@@ -228,7 +228,9 @@ class ta_draw(object):
 		ax1_1.plot(self.df['Date'], self.df['volume'], 'C1', label='Vol')
 		# draw grid
 		ax1_1.grid(color='C1', linestyle='-', linewidth=0.5)
-		_text = _text + '    成交量 ' + str(ymin) + ' ~ ' + str(ymax)	
+		_text = _text + '    成交量 {:.1f} - {:.1f}'.format(ymin,ymax)
+		dateStr = '期間 ' + self.df['DateStr'].loc[:1].values[0] + ' - ' + self.df['DateStr'].tail(1).values[0]
+		_text = _text + '  ' + dateStr
 		ax1.text(0, 1.02, _text, transform=ax1.transAxes, fontsize=18)		
 
 		# ask matplotlib for the plotted objects and their labels
@@ -423,7 +425,7 @@ class ta_draw(object):
 			min = self.df['revenue'].loc[self.df['revenue']!=0].min()/1000
 			max = self.df['revenue'].max()/1000
 			current = self.df['revenue'].loc[self.df['revenue']!=0].tail(1).values[0]/1000
-			_text = '營收(百萬) 最高 '+ str(max) + ' 最低 ' + str(min) + '   目前 '+str(current)
+			_text = '營收(百萬) 最高 {:.1f}  最低 {:.1f}  目前 {:.1f} '.format(max, min, current)
 			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
 			
 		if pngName == None:

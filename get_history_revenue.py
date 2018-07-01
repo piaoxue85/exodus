@@ -41,17 +41,17 @@ def monthly_report(year, month):
 	df = df[df['公司代號'] != '合計']
 
 	#print(df)
-	df.to_csv('history/{}_{}'.format(year, month)+'_vol.csv')
+	df.to_csv('history/revenue/{}_{}'.format(year, month)+'.csv')
 	
 	# 偽停頓
 	time.sleep(30)
 	return df
 
 def main():
-	monthly_report(2018, 1)
-	monthly_report(2018, 2)
-	monthly_report(2018, 3)
-	monthly_report(2018, 4)
+	#monthly_report(2018, 1)
+	#monthly_report(2018, 2)
+	#monthly_report(2018, 3)
+	monthly_report(2018, 6)
 	#for year in range(2014, 2018):
 	#	for month in range(1, 13):
 	#		monthly_report(year, month)

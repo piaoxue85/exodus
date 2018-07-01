@@ -77,7 +77,7 @@ def draw_info_div1(df_info, title, pngName):
 	else:
 		plt.show()	
 		
-def draw_info_div0(df_info, title, pngName):
+def draw_info_div(df_info, title, pngName):
 
 	minEPS = df_info['eps'].min()
 	maxEPS = df_info['eps'].max()

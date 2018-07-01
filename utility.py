@@ -272,9 +272,12 @@ def update_monthly_report(year, month):
 	headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
 	# 下載該年月的網站，並用pandas轉換成 dataframe
-	r = requests.get(url, headers=headers)
-	r.encoding = 'big5'
-	html_df = pd.read_html(StringIO(r.text))
+	try:
+		r = requests.get(url, headers=headers)
+		r.encoding = 'big5'
+		html_df = pd.read_html(StringIO(r.text))
+	except:
+		return
 
 	# 處理一下資料
 	if html_df[0].shape[0] > 500:
@@ -289,11 +292,11 @@ def update_monthly_report(year, month):
 	df = df[df['公司代號'] != '合計']
 
 	#print(df)
-	df.to_csv('history/{}_{}'.format(year, month)+'_vol.csv')
+	df.to_csv('history/revenue/{}_{}'.format(year, month)+'.csv')
 	
 	# 偽停頓
 	time.sleep(30)
-	return df
+	#return df
 
 def financial_statement(year, season, type='綜合損益彙總表'):
 	if year >= 1000:
