@@ -73,7 +73,7 @@ def main():
 			#df_main['volume'].loc[df_main['DateStr']=='2018-06-08']=df_main['volume'].loc[df_main['DateStr']=='2018-06-08']/1000
 			#print(df_main)
 			df_main.to_csv('history.new/'+stock+'.csv')
-	if True:
+	if False:
 		df = pd.read_csv('history/8299.TWO.csv', delim_whitespace=False, header=0)
 		df = df.dropna()
 		df = df.drop('Adj Close', 1)
@@ -85,5 +85,11 @@ def main():
 		df.reset_index(drop=True, inplace=True)
 		print('')
 		df.to_csv('history/8299.csv')
+
+	stockList = readStockList('all_stock.csv')
+	for stock in stockList:
+		df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
+		df_main.drop(columns=['Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
+		df_main.to_csv('history/'+stock+'.csv')
 
 main()
