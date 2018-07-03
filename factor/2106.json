@@ -1,10 +1,28 @@
 {
+    "id": "2106",
 	"name": "建大",
+    "fontSize": 36,
+    "fontColor": "#000",
 	"factor":
-	[
-		{
-			"name": "oil price",
-			"effect": "negative"
-		}
-	]
+	{
+        "fontSize": 24,
+        "fontColor": "#F00",
+        "factor":
+        [
+            {
+                "name": "油價",
+                "effect": "negative",
+                "fontSize": 24,
+                "fontColor": "#F00"
+            }
+        ]
+	},
+    "news":
+    {
+        "fontSize": 24,
+        "fontColor": "#00F",
+        "news": 
+        [
+        ]
+    }
 }

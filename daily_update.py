@@ -23,26 +23,27 @@ def main():
 		startDate = date.today()
 	period = args['period']
 
-	update_monthly_report(startDate.year, startDate.month)
+	update_monthly_report(startDate.year, 6)
 	update_daily(startDate, period)
 
-	for stock in stockList:
+	if False:
+		for stock in stockList:
 
-		empty, df_main = readStockHistory(stock, 9999, raw=True)
-		if empty == True:
-			continue
-		for index, row in df_main.iterrows():
-			dt = row['Date']
-			#print('get {} of {}-{}-{}'.format(stock, dt.year, dt.month, dt.day))			
-			#eps = get_daily_eps(stock, dt.year, dt.month, dt.day)
-			if df_main['PER'].loc[index] == 0:
-				per = get_daily_per(stock, dt.year, dt.month, dt.day)
-				df_main['PER'].at[index] = per
-			if df_main['revenue'].loc[index] == 0:
-				revenue = get_monthly_revenus(stock, dt.year, dt.month)
-				df_main['revenue'].at[index] = revenue
-		print('Combin {}'.format(stock))
-		df_main.to_csv('history/'+stock+'.csv')
+			empty, df_main = readStockHistory(stock, 9999, raw=True)
+			if empty == True:
+				continue
+			for index, row in df_main.iterrows():
+				dt = row['Date']
+				#print('get {} of {}-{}-{}'.format(stock, dt.year, dt.month, dt.day))			
+				#eps = get_daily_eps(stock, dt.year, dt.month, dt.day)
+				if df_main['PER'].loc[index] == 0:
+					per = get_daily_per(stock, dt.year, dt.month, dt.day)
+					df_main['PER'].at[index] = per
+				if df_main['revenue'].loc[index] == 0:
+					revenue = get_monthly_revenus(stock, dt.year, dt.month)
+					df_main['revenue'].at[index] = revenue
+			print('Combin {}'.format(stock))
+			df_main.to_csv('history/'+stock+'.csv')
 
 
 main()

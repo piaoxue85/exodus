@@ -13,11 +13,11 @@
                 "max": -1
             },
             {
-                "index": "div_2017_all",
+                "index": "yield_2018",
                 "function": "simple_compare",
                 "method": "latest",
                 "type": "absolute",
-                "min": 0.1,
+                "min": 3,
                 "max": 9999.0
             },
             {

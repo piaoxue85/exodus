@@ -35,11 +35,14 @@ def main(args):
 	
 	now = datetime.datetime.now()
 
-	policy = readPolicy('policy/'+args['evaluate'])
-	period = policy['period']
-	pngPath = args['path']+'/png'
+	if 'evaluate' in args['evaluate']:
+		policy = readPolicy('policy/'+args['evaluate'])
+		period = policy['period']
+		initial_cash = policy['initial']		
+	else:
+		period = 9999
+		
 	evaluatePath = args['path']+'/'+args['evaluate'].split('.')[0]
-	os.makedirs(pngPath, exist_ok=True)
 	os.makedirs(evaluatePath, exist_ok=True)
 
 	df_div_eng, _ = readDividenHistory('dividen.csv')
@@ -51,12 +54,16 @@ def main(args):
 		#	print('skip ', stock)
 		#	continue
 		#print('process ', stock)
-		initial_cash = policy['initial']
+
 		empty, df_main = readStockHistory(stock, period, raw=False)
 		if empty == True:
 			print('no data')
 			continue
+		
 		(stock_id, stock_name) = stockList[stock]
+		stockPath = evaluatePath + stock_id + '_' + stock_name
+		os.makedirs(stockPath, exist_ok=True)
+		
 		if (args['evaluate'] != ''):
 			predict = ta_predict(stock_id, df_main)
 			
@@ -118,16 +125,16 @@ def main(args):
 			df_short = df_main.tail(20)
 			df_short.reset_index(drop=True, inplace=True)
 			
-			pngName = pngPath+'/{}_{}{:02d}{:02d}_short.png'.format(stock, now.year, now.month, now.day)
+			pngName = stockPath+'/short.png'
 			draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
 			draw.draw()
-			pngName = pngPath+'/{}_{}{:02d}{:02d}_KD.png'.format(stock, now.year, now.month, now.day)
+			pngName = stockPath+'/KD.png'
 			draw.draw_ta('KD', pngName)
-			pngName = pngPath+'/{}_{}{:02d}{:02d}_MACD.png'.format(stock, now.year, now.month, now.day)
+			pngName = stockPath+'/MACD.png'
 			draw.draw_ta('MACD', pngName)
-			pngName = pngPath+'/{}_{}{:02d}{:02d}_SMA.png'.format(stock, now.year, now.month, now.day)
+			pngName = stockPath+'/SMA.png'
 			draw.draw_ta('SMA', pngName)
-			pngName = pngPath+'/{}_{}{:02d}{:02d}_BIAS.png'.format(stock, now.year, now.month, now.day)
+			pngName = stockPath+'/BIAS.png'
 			draw.draw_ta('BIAS', pngName)
 			del draw
 	

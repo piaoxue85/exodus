@@ -13,6 +13,8 @@ import argparse
 from collections import OrderedDict
 import datetime
 import json
+import os.path
+import text2png
 
 #def draw_divi(stock, df_div_hi)
 
@@ -106,7 +108,32 @@ def draw_info_div(df_info, title, pngName):
 	if pngName != None:
 		plt.savefig(pngName)
 	else:
-		plt.show()			
+		plt.show()
+		
+def draw_oil_price(df_info, title, pngName):
+
+	min = df_info['Price'].min()
+	max = df_info['Price'].max()
+	current = df_info['Price'].tail(1).values[0]
+	currentDate = df_info['Date'].tail(1).values[0]
+	_text = '歷史價格 {:.1f} ~ {:.1f}  目前 {} {:.1f}'.format(min, max, currentDate, current)
+
+	bar_width = 1
+	fig, ax0 = plt.subplots()
+	ax0.bar(df_info.index, df_info['Price'], bar_width,
+			color='b',
+            label='原油價格')
+
+	ax0.set_title(title)
+	ax0.title.set_size(24)
+	ax0.locator_params(axis='x', nbins=100)
+	plt.xticks(df_info.index[::20], df_info[::20]['Date'], rotation=70)
+	ax0.text(0, 1.01, _text, transform=ax0.transAxes, fontsize=18)
+	ax0.legend(fontsize=16)
+	if pngName != None:
+		plt.savefig(pngName)
+	else:
+		plt.show()					
 					
 def main(args):
 
@@ -121,13 +148,7 @@ def main(args):
 
 	now = datetime.datetime.now()
 
-	#policy = readPolicy('policy/'+args['evaluate'])
-	#period = policy['period']
 	period = 2000
-	pngPath = args['path']+'/png'
-	evaluatePath = args['path']+'/'+args['evaluate'].split('.')[0]
-	os.makedirs(pngPath, exist_ok=True)
-	os.makedirs(evaluatePath, exist_ok=True)
 
 	df_div_all, _ = readDividenHistory('dividen.csv')
 	for stock in stockList:
@@ -139,7 +160,7 @@ def main(args):
 		(stock_id, stock_name) = stockList[stock]
 		df_div = output_div(stock_id, df_main, df_div_all)
 
-		stockPath = evaluatePath + stock + '_' + stock_name
+		stockPath = args['path'] + '/' + stock + '_' + stock_name
 		os.makedirs(stockPath, exist_ok=True)
 		pngName = stockPath+'/price_volume.png'
 		draw = ta_draw(stock_id+'  '+stock_name, df_main, None, pngName)
@@ -160,9 +181,18 @@ def main(args):
 			draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
 			draw.draw_price_volume(str(p))
 		
+		# draw EPS and dividen
 		pngName = stockPath+'/EPS.png'
 		draw_info_div(df_div, stock_id+'  '+stock_name + ' 股利', pngName)
 		
+		# draw basic info
+		if os.path.isfile('factor/'+stock_id+'.json'):
+			text2png.json2png('factor/'+stock_id+'.json', stockPath+'/basic.png')
+		
+		# draw crude oil price
+		pngName = stockPath+'/oil.png'
+		df = pd.read_csv('history/crude_oil_price.csv')
+		draw_oil_price(df, '原油價格', pngName)
 		
 if __name__ == '__main__':
 

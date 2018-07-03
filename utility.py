@@ -152,7 +152,7 @@ def update_daily(startDate, period):
 				high = float(row['最高價'])
 				low = float(row['最低價'])
 				dateStr = mydatetime.strftime('%Y-%m-%d')
-				new_sample = '{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), len(df_stock),
+				new_sample = '{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
 												_open, high, low, _close, volume, 
 												mydatetime,
 												dateStr,
