@@ -24,7 +24,7 @@ def main():
 	period = args['period']
 
 	update_monthly_report(startDate.year, 6)
-	update_daily(startDate, period)
+	#update_daily(startDate, period)
 
 	if False:
 		for stock in stockList:
