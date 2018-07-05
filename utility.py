@@ -681,3 +681,24 @@ def readDividenHistory(fname):
 									'eps_2006':'2006EPS', 'yield_2006':'2006殖利率', 'payout_ratio_2006':'2006配息率', 'div_2006_all':'2006股利+現金', 'div_2006_cash':'2006現金', 'div_2006_stock':'2006股票',
 								})
 	return df_eng, df_cht
+	
+def readBasicInfo():
+	df = pd.read_csv('history/basic_info.csv', index_col=0)
+	df['代號']=df['代號'].str.replace('=', '')
+	df['代號']=df['代號'].str.replace('"', '')
+	df.rename(columns={'代號': 'stock', '名稱': 'name'}, inplace=True)		
+	return df
+	
+def readGrossMarginProfit12Q():
+	df = pd.read_csv('history/gross_profit_margin_12q.csv', index_col=0)
+	df['代號']=df['代號'].str.replace('=', '')
+	df['代號']=df['代號'].str.replace('"', '')
+	df.rename(columns={'代號': 'stock', '名稱': 'name'}, inplace=True)		
+	return df	
+	
+def readNetMarginProfit12Q():
+	df = pd.read_csv('history/net_profit_margin_12q.csv', index_col=0)
+	df['代號']=df['代號'].str.replace('=', '')
+	df['代號']=df['代號'].str.replace('"', '')
+	df.rename(columns={'代號': 'stock', '名稱': 'name'}, inplace=True)		
+	return df		

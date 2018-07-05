@@ -8,6 +8,7 @@ from collections import OrderedDict
 import datetime
 import ta_main
 import info_main
+import gen2html
 
 def select_df_by_index(stock, df_ROE, df_div, df_price, index):
 	found_index = False
@@ -194,6 +195,7 @@ def main():
 	pd.options.display.float_format = '{:.2f}'.format
 	
 	df_ROE=readROEHistory('ROE_2006_2017.csv')
+	df_basic = readBasicInfo()
 	df_div_eng, _ = readDividenHistory('dividen.csv')
 
 	pickList = pick_by_policy(df_ROE, df_div_eng, args['pick'])
@@ -265,6 +267,26 @@ def main():
 		args['visualize'] = False
 		args['path'] = path
 		info_main.main(args)
+		
+	
+	gen2html.df2html(df_pick, args['pick'], path+'/index.html')
+	
+	imgList = 	[
+				('price_volume_30.png', '近30日價量', True),
+				('revenue.png', '營收', True),
+				('EPS.png', 'EPS', True),
+				('ROE.png', '股東權益', True),
+				('margin_12Q.png', '12季毛/淨利率', True),					
+				('price_volume_60.png', '近60日價量', False),
+				('price_volume_120.png', '近120日價量', False),
+				('price_volume_240.png', '近240日價量', False),
+				('price_volume.png', '2013~ 價量', False),
+				]	
+	for (stock, name, _, _, _) in pickList:
+		stockPath = path + '/' + stock + '_' + name
+		os.makedirs(stockPath, exist_ok=True)
+		ipath = stockPath + '/' + 'index.html'
+		gen2html.gen2html(stock, name, 'factor/'+stock+'.json', ipath, imgList, df_basic)
 
 if __name__ == '__main__':
 	main()

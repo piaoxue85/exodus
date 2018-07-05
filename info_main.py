@@ -105,10 +105,89 @@ def draw_info_div(df_info, title, pngName):
 	plt.xticks(df_info.index)
 	ax0.text(0, 1.01, _text, transform=ax0.transAxes, fontsize=18)
 	ax0.legend(fontsize=16)
+	ax0.grid()
 	if pngName != None:
 		plt.savefig(pngName)
 	else:
 		plt.show()
+		
+def draw_ROE(df_ROE, title, pngName):
+
+	_year = range(2006, 2018)
+	_roe = []
+	for y in _year:
+		col = str(y)+'ROE'
+		_roe.append(df_ROE[col].values[0])
+	df = pd.DataFrame(data={'年度': _year, 'ROE':_roe})
+
+	bar_width = 0.8
+	fig, ax0 = plt.subplots()
+	ax0.bar(df['年度'], df['ROE'], bar_width,
+			color='b',
+            label='ROE')
+
+	ax0.set_title(title)
+	ax0.title.set_size(24)
+	plt.xticks(df['年度'])
+	
+	min = df['ROE'].min()
+	max = df['ROE'].max()
+	_text = '股東權益報酬率 {:.1f} ~ {:.1f}'.format(min, max)	
+	ax0.text(0, 1.01, _text, transform=ax0.transAxes, fontsize=18)
+	ax0.legend(fontsize=16)
+	ax0.grid()
+	if pngName != None:
+		plt.savefig(pngName)
+	else:
+		plt.show()		
+		
+def draw_ProfitMargin(df_gross, df_net, title, pngName, by12Q):
+
+	xlabel = '季度' if by12Q == True else '年度'
+	_col = []
+	_gval = []
+	_nval = []
+	for c in df_gross.columns:
+		if '平均毛利(%)' == c:
+			continue
+		if '毛利(%)' in c:
+			c = c.rstrip('毛利(%)')
+			_col.append(c)
+			_gval.append(df_gross[c+'毛利(%)'].values[0])
+			_nval.append(df_net[c+'淨利(%)'].values[0])
+	
+	df = pd.DataFrame(data={xlabel: _col, '毛利(%)':_gval, '淨利(%)':_nval})
+	df.reset_index(inplace=True)
+	bar_width = 0.35
+	fig, ax0 = plt.subplots()
+	ax0.bar(df.index-bar_width/2, df['毛利(%)'], bar_width,
+			color='b',
+            label='毛利(%)')
+	ax0.bar(df.index+bar_width/2, df['淨利(%)'], bar_width,
+			color='r',
+            label='淨利(%)')
+			
+	ax0.set_title(title)
+	ax0.title.set_size(24)
+	plt.xticks(df.index, df[xlabel])
+	
+	min = df['毛利(%)'].min()
+	max = df['毛利(%)'].max()
+	_text = '毛利率 {:.1f} ~ {:.1f}'.format(min, max)	
+	ax0.text(0, 1.01, _text, transform=ax0.transAxes, fontsize=18)
+
+	min = df['淨利(%)'].min()
+	max = df['淨利(%)'].max()
+	_text = '淨利率 {:.1f} ~ {:.1f}'.format(min, max)	
+	ax0.text(0, 1.05, _text, transform=ax0.transAxes, fontsize=18)
+
+	ax0.legend(fontsize=16)
+	ax0.grid()
+	if pngName != None:
+		plt.savefig(pngName)
+	else:
+		plt.show()		
+
 		
 def draw_oil_price(df_info, title, pngName):
 
@@ -130,6 +209,7 @@ def draw_oil_price(df_info, title, pngName):
 	plt.xticks(df_info.index[::20], df_info[::20]['Date'], rotation=70)
 	ax0.text(0, 1.01, _text, transform=ax0.transAxes, fontsize=18)
 	ax0.legend(fontsize=16)
+	ax0.grid()
 	if pngName != None:
 		plt.savefig(pngName)
 	else:
@@ -151,6 +231,9 @@ def main(args):
 	period = 2000
 
 	df_div_all, _ = readDividenHistory('dividen.csv')
+	df_ROE = readROEHistory('ROE_2006_2017.csv')
+	df_gmargin = readGrossMarginProfit12Q()
+	df_nmargin = readNetMarginProfit12Q()
 	for stock in stockList:
 
 		empty, df_main = readStockHistory(stock, period, raw=False)
@@ -170,7 +253,7 @@ def main(args):
 		pngName = stockPath+'/PER.png'
 		draw.draw_ta('PER', pngName)
 		
-		# draw PER
+		# draw revenue
 		pngName = stockPath+'/revenue.png'
 		draw.draw_ta('revenue', pngName)
 
@@ -184,10 +267,16 @@ def main(args):
 		# draw EPS and dividen
 		pngName = stockPath+'/EPS.png'
 		draw_info_div(df_div, stock_id+'  '+stock_name + ' 股利', pngName)
+
+		# draw ROE
+		pngName = stockPath+'/ROE.png'
+		draw_ROE(df_ROE[df_ROE['stock']==stock_id], stock_id+'  '+stock_name + ' 股東權益報酬率', pngName)
 		
-		# draw basic info
-		if os.path.isfile('factor/'+stock_id+'.json'):
-			text2png.json2png('factor/'+stock_id+'.json', stockPath+'/basic.png')
+		# draw gross margin
+		pngName = stockPath+'/margin_12Q.png'
+		draw_ProfitMargin(	df_gmargin[df_gmargin['stock']==stock_id], 
+							df_nmargin[df_nmargin['stock']==stock_id],
+							stock_id+'  '+stock_name + ' 12季毛利率', pngName, True)
 		
 		# draw crude oil price
 		pngName = stockPath+'/oil.png'

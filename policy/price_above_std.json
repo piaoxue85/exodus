@@ -1,0 +1,17 @@
+{
+    "type": "PICK",
+    "name": "Price_Above_STD",
+    "tactic":
+    {
+        "condition":
+        [
+            {
+                "index": "close",
+                "function": "compare_against_mean_std",
+                "period": 500,
+                "min": 3,
+                "max": 999
+            }            
+        ]
+    }
+}
