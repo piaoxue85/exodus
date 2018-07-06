@@ -10,7 +10,7 @@ import ta_main
 import info_main
 import gen2html
 
-def select_df_by_index(stock, df_ROE, df_div, df_price, index):
+def select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index):
 	found_index = False
 	to_pick = True
 	if index in df_ROE.columns:
@@ -24,31 +24,60 @@ def select_df_by_index(stock, df_ROE, df_div, df_price, index):
 	if index in df_price.columns:
 		df = df_price
 		found_index = True
+	if index in df_basic.columns:
+		df = df_basic
+		found_index = True		
 	return found_index, df
 
-def simple_compare(stock, df_ROE, df_div, df_price, cond):
+def simple_compare(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
-	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index)
 	if found_index == False:
 		return False
 		
 
 	to_pick = True
-	if cond['method'] == 'mean':
-		targetIdx = np.mean(df[index].values)
-	if cond['method'] == 'std':
-		targetIdx = np.std(df[index].values)
-	if cond['method'] == 'median':
-		targetIdx = np.median(df[index].values)
-	if cond['method'] == 'latest':
-		targetIdx = df[index].tail(1).values[0]
-		
-	if targetIdx < cond['min'] or targetIdx > cond['max']:
-		to_pick = False				
-	
+	try:
+		if cond['method'] == 'mean':
+			targetIdx = np.mean(df[index].values)
+		if cond['method'] == 'std':
+			targetIdx = np.std(df[index].values)
+		if cond['method'] == 'median':
+			targetIdx = np.median(df[index].values)
+		if cond['method'] == 'latest':
+			targetIdx = df[index].tail(1).values[0]
+			
+		if targetIdx < cond['min'] or targetIdx > cond['max']:
+			to_pick = False				
+	except:
+		to_pick = False
 	return to_pick
+	
+def compare_latest_by_ratio(stock, df_ROE, df_div, df_price, df_basic, cond):
+	index = cond['index']
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index)
+	if found_index == False:
+		return False
+		
 
-def compare_against_mean_std(stock, df_ROE, df_div, df_price, cond):
+	to_pick = True
+	try:
+		if cond['method'] == 'mean':
+			targetIdx = np.mean(df[index].values)
+		if cond['method'] == 'std':
+			targetIdx = np.std(df[index].values)
+		if cond['method'] == 'median':
+			targetIdx = np.median(df[index].values)
+		
+		ratio = df[index].tail(1).values[0]/targetIdx
+			
+		if ratio < cond['min'] or ratio > cond['max']:
+			to_pick = False				
+	except:
+		to_pick = False
+	return to_pick	
+
+def compare_against_mean_std(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
 	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
 	if found_index == False:
@@ -72,7 +101,31 @@ def compare_against_mean_std(stock, df_ROE, df_div, df_price, cond):
 	print('{} clos {}, std {:.2f}, mean {:.2f}, range {:.2f}-{:.2f}'.format(stock, targetIdx, std, mean, min, max))
 	return to_pick
 	
-def std_distribution(stock, df_ROE, df_div, df_price, cond):
+def compare_against_median_std(stock, df_ROE, df_div, df_price, df_basic, cond):
+	index = cond['index']
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	if found_index == False:
+		return False
+	
+	period = 1
+	if 'period' in cond:
+		total = len(df)
+		if (total > cond['period']):
+			df = df[total-cond['period']:]		
+	
+	to_pick = True
+	std = np.std(df[index])
+	mean = np.median(df[index])
+	min = mean + std*cond['min']
+	max = mean + std*cond['max']
+	targetIdx =df_price[index].tail(1).values[0]
+	
+	if targetIdx < min or targetIdx > max:
+		to_pick = False
+	print('{} clos {}, std {:.2f}, mean {:.2f}, range {:.2f}-{:.2f}'.format(stock, targetIdx, std, mean, min, max))
+	return to_pick	
+	
+def std_distribution(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
 	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
 	if found_index == False:
@@ -94,7 +147,7 @@ def std_distribution(stock, df_ROE, df_div, df_price, cond):
 
 	return to_pick
 	
-def detect_abnormal(stock, df_ROE, df_div, df_price, cond):
+def detect_abnormal(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
 	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
 	if found_index == False:
@@ -130,13 +183,15 @@ def detect_abnormal(stock, df_ROE, df_div, df_price, cond):
 funcdict = {
 	'simple_compare': simple_compare,
 	'compare_against_mean_std': compare_against_mean_std,
+	'compare_against_median_std': compare_against_median_std,
 	'select_df_by_index': select_df_by_index,
 	'std_distribution': std_distribution,
 	'detect_abnormal': detect_abnormal,
+	'compare_latest_by_ratio': compare_latest_by_ratio,
 }
 
 	
-def pick_by_policy(df_ROE, df_div, fname):
+def pick_by_policy(df_ROE, df_div, df_basic, fname):
 	reason = ''
 	# check buy
 	no_condition = False
@@ -169,7 +224,7 @@ def pick_by_policy(df_ROE, df_div, fname):
 			for cond in policy['tactic']['condition']:
 
 				func = funcdict[cond['function']]
-				to_pick = func(stock, df_ROE, df_div, df_price, cond)
+				to_pick = func(stock, df_ROE, df_div, df_price, df_basic[df_basic['stock']==stock], cond)
 				if to_pick == False:
 					break
 		else:
@@ -198,7 +253,7 @@ def main():
 	df_basic = readBasicInfo()
 	df_div_eng, _ = readDividenHistory('dividen.csv')
 
-	pickList = pick_by_policy(df_ROE, df_div_eng, args['pick'])
+	pickList = pick_by_policy(df_ROE, df_div_eng, df_basic, args['pick'])
 
 	if len(pickList) == 0:
 		print('No matching!!!')

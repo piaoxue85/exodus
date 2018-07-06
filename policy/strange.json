@@ -1,0 +1,26 @@
+{
+    "type": "PICK",
+    "name": "Low Cap, Low Price, High Vol",
+    "tactic":
+    {
+        "condition":
+        [
+            {
+                "index": "股本(億)",
+                "function": "simple_compare",
+                "period": 9999,
+                "method": "latest",
+                "min": 5,
+                "max": 30
+            },
+            {
+                "index": "volume",
+                "function": "compare_latest_by_ratio",
+                "period": 9999,
+                "method": "median",
+                "min": 10,
+                "max": 9999
+            }            
+        ]
+    }
+}

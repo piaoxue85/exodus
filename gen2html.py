@@ -57,9 +57,9 @@ def df2html(df, title, outpath):
 def genBacis2html(fhtml, df_basic, stock):
 	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
 	row = df_basic.loc[df_basic['stock']==stock]
-	print('\t<p><b>股本(億)</b>     {}{}<b>市值(億)</b>     {}</p>'.format(row['股本(億)'].values[0], _space, row['市值(億)'].values[0]), file=fhtml)
-	print('\t<p><b>成立年數</b>     {}{}<b>上市年數</b>     {}</p>'.format(row['成立年數'].values[0], _space, row['上市年數'].values[0]), file=fhtml)
-	print('\t<p><b>產業別</b>     {}{}<b>董事長</b>     {}{}<b>總經理</b>     {}</p>'.format(row['產業別'].values[0], _space, row['董事長'].values[0], _space, row['總經理'].values[0]), file=fhtml)
+	print('\t<p><b>股本(億)</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>市值(億)</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['股本(億)'].values[0], _space, row['市值(億)'].values[0]), file=fhtml)
+	print('\t<p><b>成立年數</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>上市年數</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['成立年數'].values[0], _space, row['上市年數'].values[0]), file=fhtml)
+	print('\t<p><b>產業別</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>董事長</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>總經理</b>     {}</p>'.format(row['產業別'].values[0], _space, row['董事長'].values[0], _space, row['總經理'].values[0]), file=fhtml)
 	
 	
 def gen2html(stock, name, fname, outpath, imgList, df_basic):
@@ -80,13 +80,15 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic):
         }
 	</script>
 	"""
+	
+	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp'
 
 	htmlHdr = '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>{}</title>\n\t\t<meta charset=\"UTF-8\">\n\t</head>'.format(name)
 	try:
 		_market = df_basic['市場'][df_basic['stock']==stock].values[0]
 	except:
 		_market = ''
-	_title = "<h1 align=\"center\" style=\"color:blue;\">{}     {}({})</h1>\n".format(stock, name, _market)
+	_title = "<h1 align=\"center\" style=\"color:blue;\">{}{}{}({})</h1>\n".format(stock, _space, name, _market)
 	
 	fhtml = open(outpath, 'w')
 	fhtml.write(htmlHdr)
@@ -117,14 +119,19 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic):
 				effect = '負向'
 			else:
 				effect = '正向'
-			print('\t<p><b>{}</b>     {}</p>'.format(factor['name'], effect), file=fhtml)
+			print('\t<p><b>{}</b>{}{}</p>'.format(factor['name'], _space, effect), file=fhtml)
 
 	_title = "\t<h2 style=\"color:red;\">新聞</h2>"
 	print(_title, file=fhtml)
 	if 'news' in info:
 		#fhtml.write(_title)
 		for news in info['news']['news']:
-			print('\t<p><b><font color=\"green\">{}</font></b>     {}</p>'.format(news['date'], news['title']), file=fhtml)
+			_ref = ''
+			_reftail = ''
+			if 'link' in news:
+				_ref = '<a href=\"{}\">'.format(news['link'])
+				_reftail = '</a>'
+			print('\t<p>{}<b><font color=\"green\">{}</font></b>{}{}{}</p>'.format(_ref, news['date'], _reftail, _space, news['title']), file=fhtml)
 	
 	for (img, imgTitle, show) in imgList:
 		id = img.split('.')[0]

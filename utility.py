@@ -684,6 +684,8 @@ def readDividenHistory(fname):
 	
 def readBasicInfo():
 	df = pd.read_csv('history/basic_info.csv', index_col=0)
+	df['股本(億)'] = [x.replace(',', '.') for x in df['股本(億)']]
+	df['股本(億)'] = df['股本(億)'].astype(float)	
 	df['代號']=df['代號'].str.replace('=', '')
 	df['代號']=df['代號'].str.replace('"', '')
 	df.rename(columns={'代號': 'stock', '名稱': 'name'}, inplace=True)		

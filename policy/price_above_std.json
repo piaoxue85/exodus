@@ -7,9 +7,9 @@
         [
             {
                 "index": "close",
-                "function": "compare_against_mean_std",
-                "period": 500,
-                "min": 3,
+                "function": "compare_against_median_std",
+                "period": 9999,
+                "min": 2,
                 "max": 999
             }            
         ]

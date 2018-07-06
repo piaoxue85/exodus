@@ -422,9 +422,14 @@ class ta_draw(object):
 			self.fig.suptitle(self.title + '   ' + '營收', fontsize=18)
 			self.ax2_lines = dict()
 			self.ax2_lines['revenue'] = self.ax2.plot(self.df['Date'], self.df['revenue'])[0]
-			min = self.df['revenue'].loc[self.df['revenue']!=0].min()/1000
-			max = self.df['revenue'].max()/1000
-			current = self.df['revenue'].loc[self.df['revenue']!=0].tail(1).values[0]/1000
+			try:
+				min = self.df['revenue'].loc[self.df['revenue']!=0].min()/1000
+				max = self.df['revenue'].max()/1000
+				current = self.df['revenue'].loc[self.df['revenue']!=0].tail(1).values[0]/1000
+			except:
+				min = 0
+				max = 0
+				current = 0
 			_text = '營收(百萬) 最高 {:.1f}  最低 {:.1f}  目前 {:.1f} '.format(max, min, current)
 			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
 			
