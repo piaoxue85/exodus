@@ -1,0 +1,40 @@
+{
+    "id": "2385",
+	"name": "群光",
+    "fontSize": 36,
+    "fontColor": "#000",
+	"factor":
+	{
+        "fontSize": 24,
+        "fontColor": "#F00",
+        "factor":
+        [
+            {
+                "name": "台幣匯率",
+                "effect": "negative",
+                "fontSize": 24,
+                "fontColor": "#F00"
+            }
+        ]
+	},
+    "news":
+    {
+        "fontSize": 24,
+        "fontColor": "#00F",
+        "news": 
+        [
+            {
+                "title": "除息日期  107/06/21",
+                "date": "2018-06-21",
+                "fontSize": 24,
+                "fontColor": "#00F"
+            },
+            {
+                "title": "群光電子積極轉型 5大產品世界第一 汽車電子領域中，群光有很好的切入點，產品線涵蓋車燈、車用攝影鏡頭、馬達、ADAS相關、車內充電器、行車紀錄器等，相信群光在車用電子零組件還有很大的發展空間，也將是未來重要成長動能。",
+                "date": "2018/5/25",
+                "fontSize": 24,
+                "fontColor": "#00F"
+            }
+        ]
+    }
+}

@@ -11,7 +11,8 @@
                 "period": 9999,
                 "method": "latest",
                 "min": 5,
-                "max": 30
+                "max": 30,
+                "comment": "股本5億～30億"
             },
             {
                 "index": "volume",
@@ -19,7 +20,8 @@
                 "period": 9999,
                 "method": "median",
                 "min": 10,
-                "max": 9999
+                "max": 9999,
+                "comment": "成交量大於中位數10倍"
             }            
         ]
     }

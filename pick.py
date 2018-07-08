@@ -190,6 +190,36 @@ funcdict = {
 	'compare_latest_by_ratio': compare_latest_by_ratio,
 }
 
+def output_div(stock, df_main, df_div_all):
+	df = df_div_all.loc[df_div_all['stock'] == stock]
+	_field = ['cash', 'stock', 'yield', 'payout_ratio']
+	cash_list = []
+	stock_list = []
+	payout_list = []
+	yield_list = []
+	eps_list = []
+	year_list = []
+	for year in range(2006, 2019):
+		#df_eps =
+		year_list.append(year)
+		cash_list.append(df['div_'+str(year)+'_cash'].values[0])
+		stock_list.append(df['div_'+str(year)+'_stock'].values[0])
+		payout_list.append(df['payout_ratio_'+str(year)].values[0])
+		yield_list.append(df['yield_'+str(year)].values[0])
+		#eps_list.append(df['div_'+str(year)+'_cash'].values[0]+df['div_'+str(year)+'_stock'].values[0]+1)
+		eps_list.append(df['eps_'+str(year)].values[0])
+		
+	df = pd.DataFrame(	{	
+						'year': year_list, 
+						'cash': cash_list, 
+						'stock': stock_list, 
+						'yield':yield_list,
+						'payout':payout_list,
+						'eps':eps_list,
+						})
+	df.set_index('year', inplace=True)
+	print('')
+	return df
 	
 def pick_by_policy(df_ROE, df_div, df_basic, fname):
 	reason = ''
@@ -206,6 +236,7 @@ def pick_by_policy(df_ROE, df_div, df_basic, fname):
 		stockList = [s for s in stockList]
 		stockList = sorted(stockList)
 	pickList = []
+	reason = []
 	for stock in stockList:
 		empty, df_price = readStockHistory(stock, 9999, raw=False)
 		if empty == True:
@@ -225,6 +256,8 @@ def pick_by_policy(df_ROE, df_div, df_basic, fname):
 
 				func = funcdict[cond['function']]
 				to_pick = func(stock, df_ROE, df_div, df_price, df_basic[df_basic['stock']==stock], cond)
+				if cond['comment'] not in reason:
+					reason.append(cond['comment'])
 				if to_pick == False:
 					break
 		else:
@@ -233,7 +266,73 @@ def pick_by_policy(df_ROE, df_div, df_basic, fname):
 			pickList.append((stock, name, price, std_price, mean_price))
 			#break
 	print('pick ', pickList)
-	return pickList
+	return pickList, reason
+
+def checkAscendDescend(valList, threshold):
+	gradient = []
+	score = 0
+	for idx in range(len(valList)-1):
+		try:
+			g = (valList[idx+1] - valList[idx])/valList[idx]
+		except:
+			continue
+		score += (g/threshold)
+		if g > threshold:
+			gradient.append('ascend')
+			#score += (g/threshold)
+		elif g < (-1)*threshold:
+			gradient.append('descend')
+			#score += (g/threshold)
+		else:
+			gradient.append('not changed')
+
+	_str = ''
+	if score > 4:
+		_str = '強升'
+	elif score > 2:
+		_str = '上升'
+	elif score > 1:
+		_str = '微幅上升'
+	elif score < -4:
+		_str = '強降'
+	elif score < -2:
+		_str = '下降'
+	elif score < -1:
+		_str = '輕微下滑'
+	else:
+		_str = '無明顯變化'
+	return score, _str
+
+
+def analyzeStock(stock, df_ROE, df_div, df_price, df_basic):
+	comment = []
+	myROE = df_ROE[df_ROE['stock']==stock]
+	avgROE = myROE['avg_ROE'].values[0]
+	last5ROE = [myROE['2013ROE'].values[0], myROE['2014ROE'].values[0], myROE['2015ROE'].values[0],
+				myROE['2016ROE'].values[0], myROE['2017ROE'].values[0]]
+	score, addStr = checkAscendDescend(last5ROE, 0.05)
+	addStr = '報酬率' + addStr
+	comment.append('過去五年平均股東報酬率 : {:.1f} : {} : '.format(np.mean(last5ROE), addStr))
+
+	avgEPS = np.mean(df_div['eps'])
+	last5EPS = df_div['eps'].tail(5).values
+	score, addStr = checkAscendDescend(last5EPS, 0.05)
+	comment.append('過去五年平均EPS : {:.1f} {} : '.format(np.mean(last5EPS), addStr))
+
+	min = np.min(df_price['close'])
+	median = np.median(df_price['close'])
+	mean = np.mean(df_price['close'])
+	max = np.max(df_price['close'])
+	std = np.std(df_price['close'])
+	current = df_price['close'].tail(1).values[0]
+	comment.append('股價 : {:.1f}~{:.1f}    平均 {:.1f}    中位數 {:.1f}    標準差 {:.1f}    目前 {:.1f}: '.format(
+					min, max, mean, median, std, current))	
+
+	df_ok = df_price[abs(df_price['close']-mean) <= std*1]
+	ratio = float(len(df_ok))/len(df_price)*100
+	comment.append('股價變動 : {:.0f}% 在標準差內 : '.format(ratio))	
+
+	return comment
 	
 def main():
 
@@ -253,7 +352,7 @@ def main():
 	df_basic = readBasicInfo()
 	df_div_eng, _ = readDividenHistory('dividen.csv')
 
-	pickList = pick_by_policy(df_ROE, df_div_eng, df_basic, args['pick'])
+	pickList, pick_reason = pick_by_policy(df_ROE, df_div_eng, df_basic, args['pick'])
 
 	if len(pickList) == 0:
 		print('No matching!!!')
@@ -324,7 +423,7 @@ def main():
 		info_main.main(args)
 		
 	
-	gen2html.df2html(df_pick, args['pick'], path+'/index.html')
+	gen2html.df2html(df_pick, args['pick'], path+'/index.html', pick_reason)
 	
 	imgList = 	[
 				('price_volume_30.png', '近30日價量', True),
@@ -336,12 +435,19 @@ def main():
 				('price_volume_120.png', '近120日價量', False),
 				('price_volume_240.png', '近240日價量', False),
 				('price_volume.png', '2013~ 價量', False),
-				]	
+				]
+
 	for (stock, name, _, _, _) in pickList:
 		stockPath = path + '/' + stock + '_' + name
 		os.makedirs(stockPath, exist_ok=True)
 		ipath = stockPath + '/' + 'index.html'
-		gen2html.gen2html(stock, name, 'factor/'+stock+'.json', ipath, imgList, df_basic)
+		
+		empty, df_price = readStockHistory(stock, 9999, raw=False)
+		if empty == True:
+			continue		
+		df_div = output_div(stock, df_price, df_div_eng)
+		comment = analyzeStock(stock, df_ROE, df_div, df_price, df_basic[df_basic['stock']==stock])
+		gen2html.gen2html(stock, name, 'factor/'+stock+'.json', ipath, imgList, df_basic, comment)
 
 if __name__ == '__main__':
 	main()

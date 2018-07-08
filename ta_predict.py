@@ -206,7 +206,7 @@ class ta_draw(object):
 		# set ax1 y lim by close		
 		ymin = np.min(self.df['close'])
 		ymax = np.max(self.df['close'])
-		ax1.set_ylim(ymin, ymax)
+		ax1.set_ylim(ymin*0.85, ymax*1.15)
 		# set xlim by date
 		ax1.set_xlim(self.df['Date'].loc[0], self.df['Date'].loc[len(self.df['Date'])-1])
 		ax1_orig_xlim = ax1.get_xlim()
@@ -221,7 +221,7 @@ class ta_draw(object):
 		# set ax1_1 y lim by volume
 		ymin = np.min(self.df['volume'].loc[self.df['volume']!=0])
 		ymax = np.max(self.df['volume'])
-		ax1_1.set_ylim(ymin, ymax)
+		ax1_1.set_ylim(ymin*0.85, ymax*1.15)
 		# set y label for ax1_1
 		ax1_1.set_ylabel('Vol')
 		# plot the volume value

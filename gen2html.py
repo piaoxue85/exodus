@@ -3,7 +3,7 @@ from datetime import date, datetime, timedelta
 import json
 import pandas as pd
 
-def df2html(df, title, outpath):
+def df2html(df, title, outpath, pick_reason):
 	htmlHdr = '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>{}</title>\n\t\t<meta charset=\"UTF-8\">\n\t</head>'.format(title)
 	htmlTail = """</html>"""
 	_bodyBegin = """
@@ -31,6 +31,12 @@ def df2html(df, title, outpath):
 	print(_style, file=fhtml)
 	print(_bodyBegin, file=fhtml)
 	print(_title, file=fhtml)
+
+	_title = "<h2 style=\"color:red;\">挑選條件</h2>"
+	print(_title, file=fhtml)
+	for reason in pick_reason:
+		print('<p><b>{}</b></p>'.format(reason), file=fhtml)
+
 	print(tblHdr, file=fhtml)
 	print('<tr>', file=fhtml)
 	for col in df.columns:
@@ -47,7 +53,7 @@ def df2html(df, title, outpath):
 				print('<td align=\"left\"><a href=\"{}\">{:.2f}</td>'.format(_ref, val), file=fhtml)
 			else:
 				print('<td align=\"left\"><a href=\"{}\">{}</td>'.format(_ref, val), file=fhtml)
-		print('</tr>', file=fhtml)	
+		print('</tr>', file=fhtml)
 	
 	print(tblEnd, file=fhtml)	
 	print(_bodyEnd, file=fhtml)
@@ -55,14 +61,25 @@ def df2html(df, title, outpath):
 	fhtml.close()
 	
 def genBacis2html(fhtml, df_basic, stock):
+	_title = "<h2 style=\"color:red;\">基本資料</h2>"
+	print(_title, file=fhtml)	
 	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
 	row = df_basic.loc[df_basic['stock']==stock]
 	print('\t<p><b>股本(億)</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>市值(億)</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['股本(億)'].values[0], _space, row['市值(億)'].values[0]), file=fhtml)
 	print('\t<p><b>成立年數</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>上市年數</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['成立年數'].values[0], _space, row['上市年數'].values[0]), file=fhtml)
 	print('\t<p><b>產業別</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>董事長</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>總經理</b>     {}</p>'.format(row['產業別'].values[0], _space, row['董事長'].values[0], _space, row['總經理'].values[0]), file=fhtml)
+
+def genComment2html(fhtml, comment, stock):
+	_title = "<h2 style=\"color:red;\">評價</h2>"
+	print(_title, file=fhtml)		
+	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
+
+	for c in comment:
+		c = c.replace(' ', '&nbsp')
+		print('\t<p><b>{}</b>&nbsp&nbsp&nbsp&nbsp<font color=\"green\">{}&nbsp&nbsp&nbsp&nbsp{}</font></p>'.format(\
+					c.split(':')[0], c.split(':')[1], c.split(':')[2]), file=fhtml)
 	
-	
-def gen2html(stock, name, fname, outpath, imgList, df_basic):
+def gen2html(stock, name, fname, outpath, imgList, df_basic, comment):
 
 	htmlTail = """</html>"""
 	_bodyBegin = """
@@ -104,9 +121,10 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic):
 	except:
 		info = {}
 
-	_title = "<h2 style=\"color:red;\">基本資料</h2>"
-	print(_title, file=fhtml)
+
+
 	genBacis2html(fhtml, df_basic, stock)
+	genComment2html(fhtml, comment, stock)
 		
 	_title = "<h2 style=\"color:red;\">變因</h2>"
 	print(_title, file=fhtml)
@@ -121,6 +139,20 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic):
 				effect = '正向'
 			print('\t<p><b>{}</b>{}{}</p>'.format(factor['name'], _space, effect), file=fhtml)
 
+
+	_title = "\t<h2 style=\"color:red;\">資料來源</h2>"
+	print(_title, file=fhtml)
+	if 'reference' in info:
+		#fhtml.write(_title)
+		for ref in info['reference']:
+			_ref = ''
+			_reftail = ''
+			if 'link' in ref:
+				_ref = '<a href=\"{}\">'.format(ref['link'])
+				_reftail = '</a>'
+			print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, ref['title'], _reftail, _space, ref['comment']), file=fhtml)
+
+
 	_title = "\t<h2 style=\"color:red;\">新聞</h2>"
 	print(_title, file=fhtml)
 	if 'news' in info:
@@ -131,7 +163,9 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic):
 			if 'link' in news:
 				_ref = '<a href=\"{}\">'.format(news['link'])
 				_reftail = '</a>'
-			print('\t<p>{}<b><font color=\"green\">{}</font></b>{}{}{}</p>'.format(_ref, news['date'], _reftail, _space, news['title']), file=fhtml)
+			print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, news['date'], _reftail, _space, news['title']), file=fhtml)
+			if 'content' in news:
+				print('\t<p>{}</p>'.format(news['content']), file=fhtml)
 	
 	for (img, imgTitle, show) in imgList:
 		id = img.split('.')[0]
