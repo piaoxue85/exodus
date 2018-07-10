@@ -420,8 +420,9 @@ class ta_draw(object):
 		if type == 'revenue':
 			# plot the PER
 			self.fig.suptitle(self.title + '   ' + '營收', fontsize=18)
+			df_to_draw = self.df[self.df['revenue']!=0]
 			self.ax2_lines = dict()
-			self.ax2_lines['revenue'] = self.ax2.plot(self.df['Date'], self.df['revenue'])[0]
+			self.ax2_lines['revenue'] = self.ax2.plot(df_to_draw['Date'], df_to_draw['revenue'])[0]
 			try:
 				min = self.df['revenue'].loc[self.df['revenue']!=0].min()/1000
 				max = self.df['revenue'].max()/1000

@@ -137,7 +137,12 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, comment):
 				effect = '負向'
 			else:
 				effect = '正向'
-			print('\t<p><b>{}</b>{}{}</p>'.format(factor['name'], _space, effect), file=fhtml)
+			_ref = ''
+			_reftail = ''				
+			if 'link' in factor:
+				_ref = '<a href=\"{}\">'.format(factor['link'])
+				_reftail = '</a>'
+			print('\t<p>{}<b>{}</b>{}{}{}</p>'.format(_ref, factor['name'], _reftail, _space, effect), file=fhtml)
 
 
 	_title = "\t<h2 style=\"color:red;\">資料來源</h2>"

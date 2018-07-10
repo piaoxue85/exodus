@@ -1,0 +1,34 @@
+{
+    "id": "2207",
+	"name": "和泰車	",
+    "reference":
+    [
+        {
+            "title": "goodinfo",
+            "comment": "goodinfo",
+            "link": "https://goodinfo.tw/StockInfo/EquityDistributionCatHis.asp?STOCK_ID=2207"
+        }
+    ],    
+	"factor":
+	{
+        "factor":
+        [
+            {
+                "name": "日幣匯率",
+                "effect": "negative",
+                "png": ""               
+            },
+            {
+                "name": "Lexus",
+                "effect": "negative",
+                "png": ""
+            }
+        ]
+	},
+    "news":
+    {
+        "news": 
+        [
+        ]
+    }
+}

@@ -1,6 +1,14 @@
 {
     "id": "9921",
 	"name": "巨大",
+    "reference":
+    [
+        {
+            "title": "goodinfo",
+            "comment": "goodinfo",
+            "link": "https://goodinfo.tw/StockInfo/EquityDistributionCatHis.asp?STOCK_ID=9921"
+        }
+    ],    
 	"factor":
 	{
         "factor":

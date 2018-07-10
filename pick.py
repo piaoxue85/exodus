@@ -79,7 +79,7 @@ def compare_latest_by_ratio(stock, df_ROE, df_div, df_price, df_basic, cond):
 
 def compare_against_mean_std(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
-	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index)
 	if found_index == False:
 		return False
 	
@@ -103,7 +103,7 @@ def compare_against_mean_std(stock, df_ROE, df_div, df_price, df_basic, cond):
 	
 def compare_against_median_std(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
-	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index)
 	if found_index == False:
 		return False
 	
@@ -127,7 +127,7 @@ def compare_against_median_std(stock, df_ROE, df_div, df_price, df_basic, cond):
 	
 def std_distribution(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
-	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index)
 	if found_index == False:
 		return False
 
@@ -149,7 +149,7 @@ def std_distribution(stock, df_ROE, df_div, df_price, df_basic, cond):
 	
 def detect_abnormal(stock, df_ROE, df_div, df_price, df_basic, cond):
 	index = cond['index']
-	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, index)
+	found_index,df = select_df_by_index(stock, df_ROE, df_div, df_price, df_basic, index)
 	if found_index == False:
 		return False	
 
@@ -256,8 +256,9 @@ def pick_by_policy(df_ROE, df_div, df_basic, fname):
 
 				func = funcdict[cond['function']]
 				to_pick = func(stock, df_ROE, df_div, df_price, df_basic[df_basic['stock']==stock], cond)
-				if cond['comment'] not in reason:
-					reason.append(cond['comment'])
+				if 'comment' in cond:
+					if cond['comment'] not in reason:
+						reason.append(cond['comment'])
 				if to_pick == False:
 					break
 		else:

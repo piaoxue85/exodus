@@ -1,28 +1,51 @@
 {
     "id": "2105",
 	"name": "正新",
-    "fontSize": 36,
-    "fontColor": "#000",
+	"reference":
+	[
+        {
+            "title": "普利司通",
+            "comment": "普利司通股價",
+            "link": "https://histock.tw/jpstock/5108"
+        },
+        {
+            "title": "普利司通",
+            "comment": "普利司通財報",
+            "link": "https://www.bridgestone.com/ir/library/result/pdf/e_h30_4_1_presentation.pdf"
+        }
+	],    
 	"factor":
 	{
-        "fontSize": 24,
-        "fontColor": "#F00",
         "factor":
         [
             {
                 "name": "油價",
-                "effect": "negative",
-                "fontSize": 24,
-                "fontColor": "#F00"
+                "link": "https://www.investing.com/commodities/crude-oil",
+                "effect": "negative 油價上漲, 汽車銷量下跌, 輪胎賣不出去, 合成橡膠價格上漲, 輪胎成本增加"
+            },
+            {
+                "name": "橡膠價格",
+                "link": "https://www.wantgoo.com/global/stockindex?stockno=JRU%26",
+                "effect": "negative, 橡膠價格上漲, 輪胎成本增加"
             }
         ]
 	},
     "news":
     {
-        "fontSize": 24,
-        "fontColor": "#00F",
         "news": 
         [
+            {
+                "title": "利比亞封港帶動國際油價漲 本周油價恐漲0.5元",
+                "content": "",
+                "link": "https://udn.com/news/story/7266/3240690",
+                "date": "2018-07-08"
+            },  
+            {
+                "title": "橡膠指數揚 4兵列隊",
+                "content": "橡膠類股指數築底數日後，今（29）日走高，法人表示，橡膠與碳煙等原料成本價格有撐，但新車銷售成長趨緩，輪胎產能供給過剩，將不利輪胎價格上漲；以產業來看，上游原料廠的表現將優於下游的輪胎廠。",
+                "link": "https://www.wantgoo.com/news/content/index?ID=814520",
+                "date": "2018-06-29"
+            }             
         ]
     }
 
