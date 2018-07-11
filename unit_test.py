@@ -86,10 +86,16 @@ def main():
 		print('')
 		df.to_csv('history/8299.csv')
 
-	stockList = readStockList('all_stock.csv')
-	for stock in stockList:
-		df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
-		df_main.drop(columns=['Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
-		df_main.to_csv('history/'+stock+'.csv')
+	if True:
+		df = pd.read_csv('history/6153.csv', delim_whitespace=False, header=0, index_col=0)
+		df['volume'] = df['volume']/1000
+		df.to_csv('history/6153.csv')
+
+	if False:
+		stockList = readStockList('all_stock.csv')
+		for stock in stockList:
+			df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
+			df_main.drop(columns=['Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
+			df_main.to_csv('history/'+stock+'.csv')
 
 main()
