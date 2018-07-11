@@ -86,7 +86,7 @@ def main():
 		print('')
 		df.to_csv('history/8299.csv')
 
-	if True:
+	if False:
 		df = pd.read_csv('history/6153.csv', delim_whitespace=False, header=0, index_col=0)
 		df['volume'] = df['volume']/1000
 		df.to_csv('history/6153.csv')
@@ -97,5 +97,9 @@ def main():
 			df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
 			df_main.drop(columns=['Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
 			df_main.to_csv('history/'+stock+'.csv')
+
+
+	startDate = date(2018, 6, 2)
+	update_daily_3j_period(startDate, '4M')
 
 main()

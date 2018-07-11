@@ -59,6 +59,10 @@ def update_stock_history(stock, period):
 	df = get_price_data(param)
 	return df
 
+def daterange(start_date, end_date):
+	for n in range(int ((end_date - start_date).days)):
+		yield start_date + timedelta(n)
+
 def update_daily_per(year, month, day, writFile=False):
 	datestr = '{}{:02d}{:02d}'.format(year, month, day)
 	try:
@@ -72,15 +76,50 @@ def update_daily_per(year, month, day, writFile=False):
 		print('unable to get ', datestr)
 		return (False, None)
 
+def update_daily_3j(year, month, day, writFile=False):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
+	try:
+		_str = 'http://www.twse.com.tw/fund/T86?response=csv&date=' + datestr + '&selectType=ALLBUT0999'
+		r = requests.post(_str)
+		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
+						for i in r.text.split('\n') if len(i.split('",')) == 20 and i[0] != '='])), header=0)
+		if writFile == True:
+			df.to_csv('history/3j/'+datestr+'.csv')
+		return (True, df)
+	except:
+		print('unable to get ', datestr)
+		return (False, None)
+
+def update_daily_3j_period(startDate, period):
+	years = 0
+	months = 0
+	days = 0
+	endDate = startDate
+	if 'Y' in period:
+		years = int(period.rstrip('Y'))
+		endDate = endDate.replace(year=endDate.year + years)
+	if 'M' in period:
+		months = int(period.rstrip('M'))
+		years = endDate.year+int((months + endDate.month) / 12)
+		months = (months + endDate.month) % 12 
+		endDate = endDate.replace(month=months)
+		endDate = endDate.replace(year=years)
+	if 'd' in period:
+		days = int(period.rstrip('d'))
+		endDate = endDate + timedelta(days=days)
+
+	for single_date in daterange(startDate, endDate):
+		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
+		print('update 3j ', datestr)
+		update_daily_3j(single_date.year, single_date.month, single_date.day, writFile=True)
+		time.sleep(10)
+
+
 def readPolicy(path):
 	json_data=open(path)
 	policy = json.load(json_data)
 	return policy		
 		
-def daterange(start_date, end_date):
-	for n in range(int ((end_date - start_date).days)):
-		yield start_date + timedelta(n)
-
 def update_daily_per_period(startDate, period):
 	years = 0
 	months = 0
