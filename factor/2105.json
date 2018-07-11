@@ -1,6 +1,6 @@
 {
     "id": "2105",
-	"name": "正新",
+	"name": "中橡",
 	"reference":
 	[
         {
@@ -19,14 +19,27 @@
         "factor":
         [
             {
+                "name": "美國汽車銷售量",
+                "link": "https://stock-ai.com/eom-1-TOTALNSA.php",
+                "effect": "positive"
+            },
+            {
                 "name": "油價",
                 "link": "https://www.investing.com/commodities/crude-oil",
-                "effect": "negative 油價上漲, 汽車銷量下跌, 輪胎賣不出去, 合成橡膠價格上漲, 輪胎成本增加"
+                "effect": "negative", 
+                "comment": "油價上漲, 汽車銷量下跌, 輪胎賣不出去, 合成橡膠/炭黑 價格上漲, 輪胎成本增加"
             },
             {
                 "name": "橡膠價格",
                 "link": "https://www.wantgoo.com/global/stockindex?stockno=JRU%26",
-                "effect": "negative, 橡膠價格上漲, 輪胎成本增加"
+                "effect": "negative",
+                "comment": "橡膠價格上漲, 輪胎成本增加, 2103 台橡"
+            },
+            {
+                "name": "炭黑價格",
+                "link": "https://fred.stlouisfed.org/series/WPU06790918",
+                "effect": "negative",
+                "comment": "炭黑價格上漲, 輪胎成本增加, 2104 中橡"
             }
         ]
 	},

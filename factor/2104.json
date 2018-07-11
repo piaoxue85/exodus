@@ -1,0 +1,45 @@
+{
+    "id": "2104",
+	"name": "正新",
+	"reference":
+	[
+        {
+            "title": "普利司通",
+            "comment": "普利司通股價",
+            "link": "https://histock.tw/jpstock/5108"
+        },
+        {
+            "title": "普利司通",
+            "comment": "普利司通財報",
+            "link": "https://www.bridgestone.com/ir/library/result/pdf/e_h30_4_1_presentation.pdf"
+        }
+	],    
+	"factor":
+	{
+        "factor":
+        [
+            {
+                "name": "油價",
+                "link": "https://www.investing.com/commodities/crude-oil",
+                "effect": "negative 油價上漲, 汽車銷量下跌, 輪胎賣不出去, 合成橡膠/炭黑 價格上漲, 輪胎成本增加"
+            },
+            {
+                "name": "環保",
+                "effect": "negative"
+            },
+        ]
+	},
+    "news":
+    {
+        "news": 
+        [
+            {
+                "title": "碳煙利差回溫 中橡Q1獲利可望大幅季增",
+                "content": "碳黑大廠中橡 (2104-TW) 去年第 4 季在碳煙利差較第 3 季減少，加上認列印度廠資產減損損失，衝擊獲利表現，但法人認為，第 1 季在煤焦油價格趨穩，加上碳煙利差回溫下，獲利可望較去年第 4 季大幅季增。",
+                "link": "https://news.cnyes.com/news/id/4086732",
+                "date": "2018-04-03"
+            },             
+        ]
+    }
+
+}

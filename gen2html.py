@@ -142,7 +142,8 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, comment):
 			if 'link' in factor:
 				_ref = '<a href=\"{}\">'.format(factor['link'])
 				_reftail = '</a>'
-			print('\t<p>{}<b>{}</b>{}{}{}</p>'.format(_ref, factor['name'], _reftail, _space, effect), file=fhtml)
+			comment = factor['comment'] if 'comment' in factor else ''
+			print('\t<p>{}<b>{}</b>{}{}{}{}{}</p>'.format(_ref, factor['name'], _reftail, _space, effect, _space, comment), file=fhtml)
 
 
 	_title = "\t<h2 style=\"color:red;\">資料來源</h2>"
