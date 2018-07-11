@@ -425,6 +425,7 @@ def main():
 		
 	
 	gen2html.df2html(df_pick, args['pick'], path+'/index.html', pick_reason)
+	gen2html.genGlobalEconomyhtml(path+'/global.html')
 	
 	imgList = 	[
 				('price_volume_30.png', '近30日價量', True),

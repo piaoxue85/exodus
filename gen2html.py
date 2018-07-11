@@ -32,6 +32,14 @@ def df2html(df, title, outpath, pick_reason):
 	print(_bodyBegin, file=fhtml)
 	print(_title, file=fhtml)
 
+	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp'
+	_title = '綜合'
+	_comment = ' 股市/新聞'
+	_ref = '<a href=\"{}\">'.format('global.html')
+	_reftail = '</a>'	
+	print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, _title, _reftail, _space, _comment), file=fhtml)	
+
+
 	_title = "<h2 style=\"color:red;\">挑選條件</h2>"
 	print(_title, file=fhtml)
 	for reason in pick_reason:
@@ -128,6 +136,12 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, comment):
 		
 	_title = "<h2 style=\"color:red;\">變因</h2>"
 	print(_title, file=fhtml)
+	_title = '法人動向'
+	_comment = '正向'
+	_ref = '<a href=\"https://goodinfo.tw/StockInfo/ShowBuySaleChart.asp?STOCK_ID={}&CHT_CAT=DATE\">'.format(stock)
+	_reftail = '</a>'	
+	print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, _title, _reftail, _space, _comment), file=fhtml)	
+
 	
 	# draw factor
 	if 'factor' in info:
@@ -147,6 +161,11 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, comment):
 
 	_title = "\t<h2 style=\"color:red;\">資料來源</h2>"
 	print(_title, file=fhtml)
+	_title = '綜合'
+	_comment = '國際 股市/新聞'
+	_ref = '<a href=\"{}\">'.format('../global.html')
+	_reftail = '</a>'	
+	print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, _title, _reftail, _space, _comment), file=fhtml)	
 	if 'reference' in info:
 		#fhtml.write(_title)
 		for ref in info['reference']:
@@ -183,16 +202,62 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, comment):
 	fhtml.write(_bodyEnd)	
 	fhtml.write(htmlTail)
 	fhtml.close()
+
+def genGlobalEconomyhtml(outpath):
+	htmlTail = """</html>"""
+	_bodyBegin = """
+	<body>
+	"""
+	_bodyEnd = """
+	</body>
+	"""
 	
-imgList = 	[
-				('price_volume_30.png', '近30日價量', True),
-				('revenue.png', '營收', True),
-				('EPS.png', 'EPS', True),				
-				('price_volume_60.png', '近60日價量', False),
-				('price_volume_120.png', '近120日價量', False),
-				('price_volume_240.png', '近240日價量', False),
-				('price_volume.png', '2013~ 價量', False),
-			]
+	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp'
+	name = '綜合'
+	htmlHdr = '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>{}</title>\n\t\t<meta charset=\"UTF-8\">\n\t</head>'.format(name)
+
+	
+	fhtml = open(outpath, 'w')
+	fhtml.write(htmlHdr)
+
+	fhtml.write(_bodyBegin)	
+
+	_title = "<h1 align=\"center\" style=\"color:blue;\">{}</h1>\n".format(name)	
+	fhtml.write(_title)	
+	
+	json_data=open('factor/global.json')
+	info = json.load(json_data)	
+	
+	_title = "\t<h2 style=\"color:red;\">資料來源</h2>"
+	print(_title, file=fhtml)
+	if 'reference' in info:
+		#fhtml.write(_title)
+		for ref in info['reference']:
+			_ref = ''
+			_reftail = ''
+			if 'link' in ref:
+				_ref = '<a href=\"{}\">'.format(ref['link'])
+				_reftail = '</a>'
+			print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, ref['title'], _reftail, _space, ref['comment']), file=fhtml)
+	
+	_title = "\t<h2 style=\"color:red;\">新聞</h2>"
+	print(_title, file=fhtml)
+	if 'news' in info:
+		for news in info['news']['news']:
+			_ref = ''
+			_reftail = ''
+			if 'link' in news:
+				_ref = '<a href=\"{}\">'.format(news['link'])
+				_reftail = '</a>'
+			print('\t<p>{}<b><font color=\"green\">{}</b>{}{}{}</font></p>'.format(_ref, news['date'], _reftail, _space, news['title']), file=fhtml)
+			if 'content' in news:
+				print('\t<p>{}</p>'.format(news['content']), file=fhtml)
+	
+	fhtml.write(_bodyEnd)	
+	fhtml.write(htmlTail)
+	fhtml.close()
+
+#genGlobalEconomyhtml('test_result/top_watch/'+'global.html')
 #json2html('factor/9921.json', 'test_result/test1/9921_巨大/9921.html', imgList)
 #df = pd.read_csv('test_result/test1/pick.csv', index_col=0)
 #df2html(df, 'test1', 'test_result/test1/index.html')
