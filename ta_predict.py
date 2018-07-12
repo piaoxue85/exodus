@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import utility
 from matplotlib.ticker import Formatter
-from matplotlib.dates import AutoDateFormatter, AutoDateLocator, date2num, num2date
+from matplotlib.dates import MonthLocator, WeekdayLocator, DayLocator, DateFormatter, AutoDateFormatter, AutoDateLocator, date2num, num2date
 
 
 class ta_draw(object):
@@ -249,13 +249,7 @@ class ta_draw(object):
 		
 		# set figure 
 		self.fig.suptitle(self.title, fontsize=18)
-		self.fig.autofmt_xdate(rotation=30)
-		
-		# for x-axis tick label
-		xtick_locator = AutoDateLocator()
-		xtick_formatter = AutoDateFormatter(xtick_locator)
-		self.ax1.xaxis.set_major_locator(xtick_locator)
-		self.ax1.xaxis.set_major_formatter(xtick_formatter)
+		self.fig.autofmt_xdate(rotation=70)
 		
 		self.draw_basic(self.ax1, self.ax1_1)
 		
@@ -319,6 +313,20 @@ class ta_draw(object):
 		
 		self.ax2.grid()
 		
+		# for x-axis tick label
+		if len(self.df) < 40:
+			self.ax1.xaxis.set_major_locator(DayLocator())
+		elif len(self.df) < 100:
+			self.ax1.xaxis.set_major_locator(WeekdayLocator())
+			self.ax1.xaxis.set_minor_locator(DayLocator())
+		else:
+			self.ax1.xaxis.set_major_locator(MonthLocator())
+			self.ax1.xaxis.set_minor_locator(WeekdayLocator())
+		self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+
+		self.ax1.fmt_xdata = DateFormatter('%Y-%m-%d %H:%M:%S')		
+		
+		
 		if self.pngName == None:
 			plt.show()		
 		else:
@@ -332,15 +340,18 @@ class ta_draw(object):
 		
 		# set figure 
 		self.fig.suptitle(self.title+title, fontsize=24)
-		self.fig.autofmt_xdate(rotation=30)
-		
-		# for x-axis tick label
-		xtick_locator = AutoDateLocator()
-		xtick_formatter = AutoDateFormatter(xtick_locator)
-		self.ax1.xaxis.set_major_locator(xtick_locator)
-		self.ax1.xaxis.set_major_formatter(xtick_formatter)
+		self.fig.autofmt_xdate(rotation=70)
 		
 		self.draw_basic(self.ax1, self.ax1_1)
+		if len(self.df) < 40:
+			self.ax1.xaxis.set_major_locator(DayLocator())
+		elif len(self.df) < 100:
+			self.ax1.xaxis.set_major_locator(WeekdayLocator())
+			self.ax1.xaxis.set_minor_locator(DayLocator())
+		else:
+			self.ax1.xaxis.set_major_locator(MonthLocator())
+			self.ax1.xaxis.set_minor_locator(WeekdayLocator())
+		self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
 		
 		plt.connect('motion_notify_event', self.mouse_move)	
 		#plt.connect('scroll_event', cursor.on_scroll)
@@ -369,13 +380,8 @@ class ta_draw(object):
 		
 		# set figure 
 		self.fig.suptitle(self.title + '   ' + type, fontsize=24)
-		self.fig.autofmt_xdate(rotation=30)
+		self.fig.autofmt_xdate(rotation=70)
 		
-		# for x-axis tick label
-		xtick_locator = AutoDateLocator()
-		xtick_formatter = AutoDateFormatter(xtick_locator)
-		self.ax1.xaxis.set_major_locator(xtick_locator)
-		self.ax1.xaxis.set_major_formatter(xtick_formatter)
 		self.draw_basic(self.ax1, self.ax1_1)
 		
 		if type == 'KD':
@@ -433,6 +439,20 @@ class ta_draw(object):
 				current = 0
 			_text = '營收(百萬) 最高 {:.1f}  最低 {:.1f}  目前 {:.1f} '.format(max, min, current)
 			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
+			
+		# for x-axis tick label
+		if len(self.df) < 40:
+			self.ax1.xaxis.set_major_locator(DayLocator())
+		elif len(self.df) < 100:
+			self.ax1.xaxis.set_major_locator(WeekdayLocator())
+			self.ax1.xaxis.set_minor_locator(DayLocator())
+		else:
+			self.ax1.xaxis.set_major_locator(MonthLocator())
+			self.ax1.xaxis.set_minor_locator(WeekdayLocator())
+		self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+
+		self.ax1.fmt_xdata = DateFormatter('%Y-%m-%d %H:%M:%S')		
+			
 			
 		if pngName == None:
 			plt.show()		

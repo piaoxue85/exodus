@@ -449,7 +449,7 @@ def main():
 			continue		
 		df_div = output_div(stock, df_price, df_div_eng)
 		comment = analyzeStock(stock, df_ROE, df_div, df_price, df_basic[df_basic['stock']==stock])
-		gen2html.gen2html(stock, name, 'factor/'+stock+'.json', ipath, imgList, df_basic, comment)
+		gen2html.gen2html(stock, name, 'factor/'+stock+'.json', ipath, imgList, df_basic, df_price, comment)
 
 if __name__ == '__main__':
 	main()

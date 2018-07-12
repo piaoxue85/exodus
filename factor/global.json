@@ -1,6 +1,4 @@
 {
-    "id": "2105",
-	"name": "正新",
 	"reference":
 	[
         {
@@ -14,26 +12,29 @@
             "link": "https://news.cnyes.com/news/cat/tw_stock_news"
         }
 	],    
-	"factor":
-	{
-        "factor":
-        [
-            {
-                "name": "油價",
-                "link": "https://www.investing.com/commodities/crude-oil",
-                "effect": "negative 油價上漲, 汽車銷量下跌, 輪胎賣不出去, 合成橡膠價格上漲, 輪胎成本增加"
-            },
-            {
-                "name": "橡膠價格",
-                "link": "https://www.wantgoo.com/global/stockindex?stockno=JRU%26",
-                "effect": "negative, 橡膠價格上漲, 輪胎成本增加"
-            }
-        ]
-	},
     "news":
     {
         "news": 
         [
+        
+            {
+                "title": "〈油價暴跌7%〉OPEC主席：不樂見油價大幅波動 將研究制定長期計畫",
+                "content": "石油輸出國組織 (OPEC) 主席 Suhail Al-Mazrouei 週三表示，不希望看到原油市場價格大幅波動，OPEC 更傾向平穩的價格環境。",
+                "link": "https://news.cnyes.com/news/id/4164806?exp=b",
+                "date": "2018-07-12"
+            },
+            {
+                "title": "〈油價暴跌7%〉分析師：利比亞重回油市只是觸發點 強勁拋售潮正打擊油價",
+                "content": "全球指標布蘭特原油大跌近 7%，是近 2 年半來最大的單日跌幅，主要受美中貿易局勢緊張，可能減少原油需求，而利比亞港口又將重啟，帶來產量增加的預期。分析師認為，油價恐難逃短線巨大賣壓影響。",
+                "link": "https://news.cnyes.com/news/id/4164742?exp=b",
+                "date": "2018-07-12"
+            }, 
+            {
+                "title": "〈美祭新關稅清單〉中國可能改對美國企業施壓 高通蘋果特斯拉恐成首要目標",
+                "content": "美國對中國再祭 2000 億美元關稅清單，國際投行預估，中國不太可能推出同等規模的制裁方案，但中國可以改變目標對美國企業下手，以各種手段干擾這些企業在中國的營運，當中又以科技業首當其衝。",
+                "link": "https://news.cnyes.com/news/id/4164653?exp=b",
+                "date": "2018-07-12"
+            },            
             {
                 "title": "利比亞封港帶動國際油價漲 本周油價恐漲0.5元",
                 "content": "",

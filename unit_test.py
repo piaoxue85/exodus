@@ -98,8 +98,12 @@ def main():
 			df_main.drop(columns=['Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
 			df_main.to_csv('history/'+stock+'.csv')
 
-
-	startDate = date(2018, 6, 2)
-	update_daily_3j_period(startDate, '4M')
+	if False:
+		startDate = date(2018, 6, 2)
+		update_daily_3j_period(startDate, '4M')
+		
+	if True:
+		startDate = date(2018, 7, 11)
+		update_daily_MI_QFIIS_period(startDate, '1d')
 
 main()

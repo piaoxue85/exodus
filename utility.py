@@ -113,8 +113,60 @@ def update_daily_3j_period(startDate, period):
 		print('update 3j ', datestr)
 		update_daily_3j(single_date.year, single_date.month, single_date.day, writFile=True)
 		time.sleep(10)
+		
+def update_daily_MI_QFIIS(year, month, day, writFile=False):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
+	try:
+		_str = 'http://www.twse.com.tw/fund/MI_QFIIS?response=csv&date=' + datestr + '&selectType=ALLBUT0999'
+		r = requests.post(_str)
+		for i in r.text.split('\n'):
+			print(i)
+		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
+						for i in r.text.split('\n') if len(i.split('",')) == 13 and i[0] != '='])), header=0)
+		if writFile == True:
+			df.to_csv('history/MI_QFIIS/'+datestr+'.csv')
+		return (True, df)
+	except:
+		print('unable to get MI_QFIIS ', datestr)
+		return (False, None)
 
+def update_daily_MI_QFIIS_period(startDate, period):
+	years = 0
+	months = 0
+	days = 0
+	endDate = startDate
+	if 'Y' in period:
+		years = int(period.rstrip('Y'))
+		endDate = endDate.replace(year=endDate.year + years)
+	if 'M' in period:
+		months = int(period.rstrip('M'))
+		years = endDate.year+int((months + endDate.month) / 12)
+		months = (months + endDate.month) % 12 
+		endDate = endDate.replace(month=months)
+		endDate = endDate.replace(year=years)
+	if 'd' in period:
+		days = int(period.rstrip('d'))
+		endDate = endDate + timedelta(days=days)
 
+	for single_date in daterange(startDate, endDate):
+		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
+		print('update MI_QFIIS ', datestr)
+		update_daily_MI_QFIIS(single_date.year, single_date.month, single_date.day, writFile=True)
+		time.sleep(10)		
+
+def get_daily_MI_QFIIS(stock, year, month, day):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
+	
+	try:
+		df = pd.read_csv('history/MI_QFIIS/'+datestr+'.csv')
+		if df.empty == True:
+			return 0
+		ratio = df['全體外資及陸資持股比率'].loc[df['證券代號'] == stock]
+		return ratio
+	except:
+		return 0
+	
+	
 def readPolicy(path):
 	json_data=open(path)
 	policy = json.load(json_data)
@@ -184,6 +236,7 @@ def update_daily(startDate, period):
 				df_stock = pd.read_csv(path)
 				mydatetime = datetime.combine(single_date, dt.time(13,30))
 				revenue = get_monthly_revenus(stock, single_date.year, single_date.month)
+				MI_QFIIS = get_daily_MI_QFIIS(stock, single_date.year, single_date.month, single_date.day)
 				volume = float(row['成交股數'].replace(',', ''))/1000
 				PER = float(row['本益比'])
 				_open = float(row['開盤價'])
@@ -191,13 +244,14 @@ def update_daily(startDate, period):
 				high = float(row['最高價'])
 				low = float(row['最低價'])
 				dateStr = mydatetime.strftime('%Y-%m-%d')
-				new_sample = '{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
+				new_sample = '{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
 												_open, high, low, _close, volume, 
 												mydatetime,
 												dateStr,
 												0,
 												revenue,
-												PER)
+												PER,
+												MI_QFIIS)
 				if len(df_stock[df_stock['DateStr'] == dateStr]) > 0:
 					print('		skip overwrite')
 				else:
@@ -265,7 +319,8 @@ def readStockHistory(stock, period, raw=True):
 		return True, None
 
 	df_main = df_main.dropna()
-	df_main['Date'] = pd.to_datetime(df_main.Date)
+	#df_main['Date'] = pd.to_datetime(df_main.Date)
+	df_main['Date'] = pd.DatetimeIndex(df_main.Date).normalize()
 	df_main['DateStr'] = df_main['Date'].dt.strftime('%Y-%m-%d')
 	
 	if 'Open' in df_main.columns.values:
@@ -286,6 +341,8 @@ def readStockHistory(stock, period, raw=True):
 		df_main['revenue'] = pd.Series([float(0)]*len(df_main), df_main.index)
 	if 'PER' not in df_main.columns.values.tolist():
 		df_main['PER'] = pd.Series([float(0)]*len(df_main), df_main.index)
+	if 'MI_QFIIS' not in df_main.columns.values.tolist():
+		df_main['MI_QFIIS'] = pd.Series([float(0)]*len(df_main), df_main.index)
 	df_main = df_main.dropna()
 	total = len(df_main)
 	if (total > period):
