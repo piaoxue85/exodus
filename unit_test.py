@@ -94,8 +94,8 @@ def main():
 	if False:
 		stockList = readStockList('all_stock.csv')
 		for stock in stockList:
-			df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
-			df_main.drop(columns=['Unnamed: 0', 'Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
+			df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0, index_col=0)
+			df_main.drop(columns=['Unnamed: 0.1', 'Unnamed: 0.1.1'], inplace=True)
 			df_main.to_csv('history/'+stock+'.csv')
 
 	if False:
@@ -103,7 +103,7 @@ def main():
 		update_daily_3j_period(startDate, '4M')
 		
 	if True:
-		startDate = date(2018, 7, 11)
+		startDate = date(2016, 1, 4)
 		update_daily_MI_QFIIS_period(startDate, '1d')
 
 main()

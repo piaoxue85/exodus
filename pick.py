@@ -429,6 +429,7 @@ def main():
 	
 	imgList = 	[
 				('price_volume_30.png', '近30日價量', True),
+				('MI_QFIIS_30.png', '近30日外資比例', True),
 				('revenue.png', '營收', True),
 				('EPS.png', 'EPS', True),
 				('ROE.png', '股東權益', True),
@@ -437,6 +438,10 @@ def main():
 				('price_volume_120.png', '近120日價量', False),
 				('price_volume_240.png', '近240日價量', False),
 				('price_volume.png', '2013~ 價量', False),
+				('MI_QFIIS_60.png', '近60日外資比例', False),
+				('MI_QFIIS_120.png', '近120日外資比例', False),
+				('MI_QFIIS_240.png', '近240日外資比例', False),
+				('MI_QFIIS.png', '2013~ 外資比例', True),
 				]
 
 	for (stock, name, _, _, _) in pickList:

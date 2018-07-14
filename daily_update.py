@@ -43,6 +43,9 @@ def main():
 				if df_main['revenue'].loc[index] == 0:
 					revenue = get_monthly_revenus(stock, dt.year, dt.month)
 					df_main['revenue'].at[index] = revenue
+				if df_main['MI_QFIIS'].loc[index] == 0:
+					ratio = get_daily_MI_QFIIS(stock, dt.year, dt.month, dt.day)
+					df_main['MI_QFIIS'].at[index] = ratio
 			print('Combin {}'.format(stock))
 			df_main.to_csv('history/'+stock+'.csv')
 

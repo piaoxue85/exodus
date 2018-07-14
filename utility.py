@@ -80,7 +80,7 @@ def update_daily_3j(year, month, day, writFile=False):
 	datestr = '{}{:02d}{:02d}'.format(year, month, day)
 	try:
 		_str = 'http://www.twse.com.tw/fund/T86?response=csv&date=' + datestr + '&selectType=ALLBUT0999'
-		r = requests.post(_str)
+		r = requests.post(_str)	
 		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
 						for i in r.text.split('\n') if len(i.split('",')) == 20 and i[0] != '='])), header=0)
 		if writFile == True:
@@ -119,10 +119,13 @@ def update_daily_MI_QFIIS(year, month, day, writFile=False):
 	try:
 		_str = 'http://www.twse.com.tw/fund/MI_QFIIS?response=csv&date=' + datestr + '&selectType=ALLBUT0999'
 		r = requests.post(_str)
-		for i in r.text.split('\n'):
-			print(i)
+		#for i in r.text.split('\n'):
+			#print(i)
 		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
 						for i in r.text.split('\n') if len(i.split('",')) == 13 and i[0] != '='])), header=0)
+		if df.empty == True:
+			print('unable to get MI_QFIIS ', datestr)
+			return (False, None)
 		if writFile == True:
 			df.to_csv('history/MI_QFIIS/'+datestr+'.csv')
 		return (True, df)
@@ -162,7 +165,9 @@ def get_daily_MI_QFIIS(stock, year, month, day):
 		if df.empty == True:
 			return 0
 		ratio = df['全體外資及陸資持股比率'].loc[df['證券代號'] == stock]
-		return ratio
+		if ratio.empty == True:
+			return 0
+		return ratio.values[0]
 	except:
 		return 0
 	
@@ -246,7 +251,7 @@ def update_daily(startDate, period):
 				dateStr = mydatetime.strftime('%Y-%m-%d')
 				new_sample = '{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
 												_open, high, low, _close, volume, 
-												mydatetime,
+												dateStr,
 												dateStr,
 												0,
 												revenue,
@@ -310,7 +315,8 @@ def get_monthly_revenus(stock, year, month):
 		
 def readStockHistory(stock, period, raw=True):
 	try:
-		df_main = pd.read_csv('history/'+stock+'.csv', dtype={'volume':np.float64}, delim_whitespace=False, header=0)
+		df_main = pd.read_csv('history/'+stock+'.csv', dtype={'volume':np.float64}, index_col=0, delim_whitespace=False, header=0)
+		#df_main = pd.read_csv('history/'+stock+'.csv', delim_whitespace=False, header=0)
 	except:
 		print('history/'+stock+'.csv has problem')
 		return True, None

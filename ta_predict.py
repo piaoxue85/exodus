@@ -422,6 +422,17 @@ class ta_draw(object):
 			current = self.df['PER'].tail(1).values[0]
 			_text = '本益比 最高 '+ str(max) + ' 最低 ' + str(min) + '   目前 '+str(current)
 			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
+
+		if type == 'MI_QFIIS':
+			# plot the MI_QFIIS
+			self.fig.suptitle(self.title + '   ' + '	外資比例', fontsize=18)
+			self.ax2_lines = dict()
+			self.ax2_lines['MI_QFIIS'] = self.ax2.plot(self.df['Date'], self.df['MI_QFIIS'])[0]
+			min = self.df['MI_QFIIS'].loc[self.df['MI_QFIIS']!=0].min()
+			max = self.df['MI_QFIIS'].max()
+			current = self.df['MI_QFIIS'].tail(1).values[0]
+			_text = '外資比例 最高 '+ str(max) + ' 最低 ' + str(min) + '   目前 '+str(current)
+			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
 			
 		if type == 'revenue':
 			# plot the PER

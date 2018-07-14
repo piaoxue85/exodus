@@ -252,7 +252,11 @@ def main(args):
 		# draw PER
 		pngName = stockPath+'/PER.png'
 		draw.draw_ta('PER', pngName)
-		
+
+		# draw MI_QFIIS
+		pngName = stockPath+'/MI_QFIIS.png'
+		draw.draw_ta('MI_QFIIS', pngName)
+
 		# draw revenue
 		pngName = stockPath+'/revenue.png'
 		draw.draw_ta('revenue', pngName)
@@ -263,6 +267,9 @@ def main(args):
 			pngName = stockPath+'/price_volume_'+str(p)+'.png'
 			draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
 			draw.draw_price_volume(str(p))
+			# draw MI_QFIIS
+			pngName = stockPath+'/MI_QFIIS_'+str(p)+'.png'
+			draw.draw_ta('MI_QFIIS', pngName)
 		
 		# draw EPS and dividen
 		pngName = stockPath+'/EPS.png'
