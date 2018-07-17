@@ -196,7 +196,12 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, df_price, comment):
 	for (img, imgTitle, bInternalLink) in imgList:
 		id = img.split('.')[0]
 		_display = 'none'
-		_title = '\t<button onclick=\"picShowPng(\'{}\')\">{}</button>'.format(img, imgTitle)
+		if bInternalLink == True:
+			_title = '\t<button onclick=\"picShowPng(\'{}\')\">{}</button>'.format(img, imgTitle)
+		else:
+			_ref = '<a href=\"{}{}\">'.format(img, stock)
+			_reftail = '</a>'
+			_title = '\t<button>{}{}{}</button>'.format(_ref, imgTitle, _reftail)
 		print(_title, file=fhtml)		
 
 	imageSrc = '<img id=\"show_png\" style=\'height: 100%; width: 100%; object-fit: contain; display: block;\' src=\"{}\"\>'.format(imgList[0][0])

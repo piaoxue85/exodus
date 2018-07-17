@@ -79,10 +79,16 @@ def update_daily_per(year, month, day, writFile=False):
 def update_daily_3j(year, month, day, writFile=False):
 	datestr = '{}{:02d}{:02d}'.format(year, month, day)
 	try:
+		if year < 2018:
+			colno = 17
+		else:
+			colno = 20
 		_str = 'http://www.twse.com.tw/fund/T86?response=csv&date=' + datestr + '&selectType=ALLBUT0999'
-		r = requests.post(_str)	
+		r = requests.post(_str)
+		#for i in r.text.split('\n'):
+		#	print(i)
 		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
-						for i in r.text.split('\n') if len(i.split('",')) == 20 and i[0] != '='])), header=0)
+						for i in r.text.split('\n') if len(i.split('",')) == colno and i[0] != '='])), header=0)
 		if writFile == True:
 			df.to_csv('history/3j/'+datestr+'.csv')
 		return (True, df)

@@ -436,7 +436,7 @@ def main():
 				('revenue.png', '營收', True),
 				('EPS.png', 'EPS', True),
 				('ROE.png', '股東權益', True),
-				('https://goodinfo.tw/StockInfo/EquityDistributionClassHis.asp?STOCK_ID=9921', '股東分散表', False),
+				('https://goodinfo.tw/StockInfo/EquityDistributionClassHis.asp?STOCK_ID=', '股東分散表', False),
 				('margin_12Q.png', '12季毛/淨利率', True),					
 				('price_volume_60.png', '近60日價量', True),
 				('price_volume_120.png', '近120日價量', True),

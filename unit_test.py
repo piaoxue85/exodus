@@ -113,7 +113,7 @@ def main():
 		print('{}, {}, {}, {}, {}, {}'.format(foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell))
 
 	if True:
-		startDate = date(2018, 7, 12)
-		update_daily_3j_period(startDate, '2d')
+		startDate = date(2017, 1, 1)
+		update_daily_3j_period(startDate, '1Y')
 		
 main()
