@@ -433,6 +433,54 @@ class ta_draw(object):
 			current = self.df['MI_QFIIS'].tail(1).values[0]
 			_text = '外資比例 最高 '+ str(max) + ' 最低 ' + str(min) + '   目前 '+str(current)
 			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
+
+		if type == '3j_foreign':
+			# plot the 3j
+			self.fig.suptitle(self.title + '   ' + '   外資進出', fontsize=18)
+			self.ax2.plot(self.df['Date'], self.df['foreign_buy'])[0]
+			self.ax2.plot(self.df['Date'], self.df['foreign_sell'])[0]
+			min = self.df['foreign_buy'].loc[self.df['foreign_buy']!=0].min()
+			max = self.df['foreign_buy'].max()
+			current = self.df['foreign_buy'].tail(1).values[0]
+			_text = '外資買進 最高 {:.0f} 最低  {:.0f}   目前 {:.0f}'.format(max, min, current)
+			min = self.df['foreign_sell'].loc[self.df['foreign_sell']!=0].min()
+			max = self.df['foreign_sell'].max()
+			current = self.df['foreign_sell'].tail(1).values[0]
+			_text = _text + '    外資賣出 最高 {:.0f} 最低  {:.0f}   目前 {:.0f}'.format(max, min, current)
+			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=14)
+			self.ax2.legend(['外資買', '外資賣'], loc='upper left')
+
+		if type == '3j_trust':
+			# plot the 3j
+			self.fig.suptitle(self.title + '   ' + '   投信進出', fontsize=18)
+			self.ax2.plot(self.df['Date'], self.df['trust_buy'])[0]
+			self.ax2.plot(self.df['Date'], self.df['trust_sell'])[0]
+			min = self.df['trust_buy'].loc[self.df['trust_buy']!=0].min()
+			max = self.df['trust_buy'].max()
+			current = self.df['trust_buy'].tail(1).values[0]
+			_text = '投信買進 最高 {:.0f} 最低  {:.0f}   目前 {:.0f}'.format(max, min, current)
+			min = self.df['trust_sell'].loc[self.df['trust_sell']!=0].min()
+			max = self.df['trust_sell'].max()
+			current = self.df['trust_sell'].tail(1).values[0]
+			_text = _text + '    投信賣出 最高 {:.0f} 最低  {:.0f}   目前 {:.0f}'.format(max, min, current)
+			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=14)
+			self.ax2.legend(['投信買', '投信賣'], loc='upper left')
+			
+		if type == '3j_dealer':
+			# plot the 3j
+			self.fig.suptitle(self.title + '   ' + '   自營商進出', fontsize=18)
+			self.ax2.plot(self.df['Date'], self.df['dealer_buy'])[0]
+			self.ax2.plot(self.df['Date'], self.df['dealer_sell'])[0]
+			min = self.df['dealer_buy'].loc[self.df['dealer_buy']!=0].min()
+			max = self.df['dealer_buy'].max()
+			current = self.df['dealer_buy'].tail(1).values[0]
+			_text = '自營商買進 最高 {:.0f} 最低  {:.0f}   目前 {:.0f}'.format(max, min, current)
+			min = self.df['dealer_sell'].loc[self.df['dealer_sell']!=0].min()
+			max = self.df['dealer_sell'].max()
+			current = self.df['dealer_sell'].tail(1).values[0]
+			_text = _text + '    自營商賣出 最高 {:.0f} 最低  {:.0f}   目前 {:.0f}'.format(max, min, current)
+			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=14)
+			self.ax2.legend(['自營商買', '自營商賣'], loc='upper left')
 			
 		if type == 'revenue':
 			# plot the PER

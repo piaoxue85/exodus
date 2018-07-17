@@ -87,9 +87,9 @@ def main():
 		df.to_csv('history/8299.csv')
 
 	if False:
-		df = pd.read_csv('history/6153.csv', delim_whitespace=False, header=0, index_col=0)
+		df = pd.read_csv('history/8299.csv', delim_whitespace=False, header=0, index_col=0)
 		df['volume'] = df['volume']/1000
-		df.to_csv('history/6153.csv')
+		df.to_csv('history/8299.csv')
 
 	if False:
 		stockList = readStockList('all_stock.csv')
@@ -102,8 +102,18 @@ def main():
 		startDate = date(2018, 6, 2)
 		update_daily_3j_period(startDate, '4M')
 		
-	if True:
+	if False:
 		startDate = date(2016, 1, 4)
 		update_daily_MI_QFIIS_period(startDate, '1d')
+		
+	if False:
+		startDate = date(2018, 1, 4)
+		foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell = \
+					get_daily_3j('2330', 2018, 1, 4)
+		print('{}, {}, {}, {}, {}, {}'.format(foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell))
 
+	if True:
+		startDate = date(2018, 7, 12)
+		update_daily_3j_period(startDate, '2d')
+		
 main()

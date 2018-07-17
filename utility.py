@@ -107,12 +107,34 @@ def update_daily_3j_period(startDate, period):
 	if 'd' in period:
 		days = int(period.rstrip('d'))
 		endDate = endDate + timedelta(days=days)
-
+		
 	for single_date in daterange(startDate, endDate):
 		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
 		print('update 3j ', datestr)
 		update_daily_3j(single_date.year, single_date.month, single_date.day, writFile=True)
 		time.sleep(10)
+		
+		
+def get_daily_3j(stock, year, month, day):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
+	
+	try:
+		df = pd.read_csv('history/3j/'+datestr+'.csv', index_col=0)
+		if df.empty == True:
+			return (0,0,0,0,0,0)
+		row = df.loc[df['證券代號'] == stock]
+		if row.empty == True:
+			return (0,0,0,0,0,0)
+		foreign_buy = float(row['外陸資買進股數(不含外資自營商)'].values[0].replace(',',''))/1000
+		foreign_sell = float(row['外陸資賣出股數(不含外資自營商)'].values[0].replace(',',''))/1000
+		trust_buy = float(row['投信買進股數'].values[0].replace(',',''))/1000
+		trust_sell = float(row['投信賣出股數'].values[0].replace(',',''))/1000
+		dealer_buy = float(row['自營商買進股數(自行買賣)'].values[0].replace(',',''))/1000
+		dealer_sell = float(row['自營商賣出股數(自行買賣)'].values[0].replace(',',''))/1000
+		return (foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell)
+	except:
+		return (0,0,0,0,0,0)
+
 		
 def update_daily_MI_QFIIS(year, month, day, writFile=False):
 	datestr = '{}{:02d}{:02d}'.format(year, month, day)
@@ -170,7 +192,44 @@ def get_daily_MI_QFIIS(stock, year, month, day):
 		return ratio.values[0]
 	except:
 		return 0
+
+def update_daily_3II_Summary(startDate, period):
+	years = 0
+	months = 0
+	days = 0
+	endDate = startDate
+	if 'Y' in period:
+		years = int(period.rstrip('Y'))
+		endDate = endDate.replace(year=endDate.year + years)
+	if 'M' in period:
+		months = int(period.rstrip('M'))
+		years = endDate.year+int((months + endDate.month) / 12)
+		months = (months + endDate.month) % 12 
+		endDate = endDate.replace(month=months)
+		endDate = endDate.replace(year=years)
+	if 'd' in period:
+		days = int(period.rstrip('d'))
+		endDate = endDate + timedelta(days=days)
+
+	for single_date in daterange(startDate, endDate):
+		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
+		print('update MI_QFIIS ', datestr)
+		update_daily_MI_QFIIS(single_date.year, single_date.month, single_date.day, writFile=True)
+		time.sleep(10)		
+		
+def get_daily_3II_Trade_Summary(year, month, day):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
 	
+	try:
+		df = pd.read_csv('history/MI_QFIIS/'+datestr+'.csv')
+		if df.empty == True:
+			return 0
+		ratio = df['全體外資及陸資持股比率'].loc[df['證券代號'] == stock]
+		if ratio.empty == True:
+			return 0
+		return ratio.values[0]
+	except:
+		return 0
 	
 def readPolicy(path):
 	json_data=open(path)
@@ -349,6 +408,20 @@ def readStockHistory(stock, period, raw=True):
 		df_main['PER'] = pd.Series([float(0)]*len(df_main), df_main.index)
 	if 'MI_QFIIS' not in df_main.columns.values.tolist():
 		df_main['MI_QFIIS'] = pd.Series([float(0)]*len(df_main), df_main.index)
+
+	if 'foreign_buy' not in df_main.columns.values.tolist():
+		df_main['foreign_buy'] = pd.Series([float(0)]*len(df_main), df_main.index)
+	if 'foreign_sell' not in df_main.columns.values.tolist():
+		df_main['foreign_sell'] = pd.Series([float(0)]*len(df_main), df_main.index)				
+	if 'trust_buy' not in df_main.columns.values.tolist():
+		df_main['trust_buy'] = pd.Series([float(0)]*len(df_main), df_main.index)				
+	if 'trust_sell' not in df_main.columns.values.tolist():
+		df_main['trust_sell'] = pd.Series([float(0)]*len(df_main), df_main.index)		
+	if 'dealer_buy' not in df_main.columns.values.tolist():
+		df_main['dealer_buy'] = pd.Series([float(0)]*len(df_main), df_main.index)		
+	if 'dealer_sell' not in df_main.columns.values.tolist():
+		df_main['dealer_sell'] = pd.Series([float(0)]*len(df_main), df_main.index)
+		
 	df_main = df_main.dropna()
 	total = len(df_main)
 	if (total > period):

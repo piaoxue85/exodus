@@ -193,7 +193,7 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, df_price, comment):
 			if 'content' in news:
 				print('\t<p>{}</p>'.format(news['content']), file=fhtml)
 	
-	for (img, imgTitle, show) in imgList:
+	for (img, imgTitle, bInternalLink) in imgList:
 		id = img.split('.')[0]
 		_display = 'none'
 		_title = '\t<button onclick=\"picShowPng(\'{}\')\">{}</button>'.format(img, imgTitle)

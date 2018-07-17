@@ -25,6 +25,14 @@ def main():
 			if df_main['MI_QFIIS'].loc[index] == 0:
 				ratio = get_daily_MI_QFIIS(stock, dt.year, dt.month, dt.day)
 				df_main['MI_QFIIS'].at[index] = ratio
+			if df_main['foreign_buy'].loc[index] == 0:
+				foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell = get_daily_3j(stock, dt.year, dt.month, dt.day)
+				df_main['foreign_buy'].at[index] = foreign_buy
+				df_main['foreign_sell'].at[index] = foreign_sell
+				df_main['trust_buy'].at[index] = trust_buy
+				df_main['trust_sell'].at[index] = trust_sell
+				df_main['dealer_buy'].at[index] = dealer_buy
+				df_main['dealer_sell'].at[index] = dealer_sell
 		print('Combin {}'.format(stock))
 		df_main.to_csv('history/'+stock+'.csv')
 		#break
