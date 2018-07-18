@@ -307,6 +307,7 @@ def update_daily(startDate, period):
 				mydatetime = datetime.combine(single_date, dt.time(13,30))
 				revenue = get_monthly_revenus(stock, single_date.year, single_date.month)
 				MI_QFIIS = get_daily_MI_QFIIS(stock, single_date.year, single_date.month, single_date.day)
+				foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell = get_daily_3j(stock, single_date.year, single_date.month, single_date.day)
 				volume = float(row['成交股數'].replace(',', ''))/1000
 				PER = float(row['本益比'])
 				_open = float(row['開盤價'])
@@ -314,15 +315,18 @@ def update_daily(startDate, period):
 				high = float(row['最高價'])
 				low = float(row['最低價'])
 				dateStr = mydatetime.strftime('%Y-%m-%d')
-				new_sample = '{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
+				new_sample = '{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}\n'.format(len(df_stock), 
 												_open, high, low, _close, volume, 
 												dateStr,
 												dateStr,
 												0,
 												revenue,
 												PER,
-												MI_QFIIS)
-				if len(df_stock[df_stock['DateStr'] == dateStr]) > 0:
+												MI_QFIIS,
+												foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell
+												)
+				#if len(df_stock[df_stock['DateStr'] == dateStr]) > 0:
+				if False:
 					print('		skip overwrite')
 				else:
 					print('		update ', stock, new_sample)

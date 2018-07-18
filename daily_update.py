@@ -23,8 +23,9 @@ def main():
 		startDate = date.today()
 	period = args['period']
 
-	update_monthly_report(startDate.year, 6)
+	#update_monthly_report(startDate.year, 6)
 	update_daily_MI_QFIIS_period(startDate, period)
+	update_daily_3j_period(startDate, period)
 	update_daily(startDate, period)
 
 	if False:
