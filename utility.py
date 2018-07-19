@@ -198,7 +198,71 @@ def get_daily_MI_QFIIS(stock, year, month, day):
 		return ratio.values[0]
 	except:
 		return 0
+		
+def update_daily_MI_Margin(year, month, day, writFile=False):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
+	#try:
+	if True:
+		_str = 'http://www.twse.com.tw/exchangeReport/MI_MARGN?response=csv&date=' + datestr + '&selectType=ALL'
+		r = requests.post(_str)
+		for i in r.text.split('\r\n'):
+			print(i)
+		df = pd.read_csv(StringIO("\n".join([i.translate({ord(c): None for c in ' '}) 
+						for i in r.text.split('\r\n') if len(i.rstrip(',').split('",')) == 16 and i[0] != '='])), header=0)
+		if df.empty == True:
+			print('unable to get MI_Margin ', datestr)
+			return (False, None)
+		for c in df.columns:
+			df[c] = df[c].astype('str') 
+			df[c] = df[c].str.replace(',', '')
+			df[c] = df[c].str.replace('\"', '')
+			#df['c'] = df['c']
+			print(df[c].dtype)
+		if writFile == True:
+			df.to_csv('history/MI_Margin/'+datestr+'.csv')
+		return (True, df)
+	#except:
+		#print('unable to get MI_Margin ', datestr)
+		#return (False, None)
 
+def update_daily_MI_Margin_period(startDate, period):
+	years = 0
+	months = 0
+	days = 0
+	endDate = startDate
+	if 'Y' in period:
+		years = int(period.rstrip('Y'))
+		endDate = endDate.replace(year=endDate.year + years)
+	if 'M' in period:
+		months = int(period.rstrip('M'))
+		years = endDate.year+int((months + endDate.month) / 12)
+		months = (months + endDate.month) % 12 
+		endDate = endDate.replace(month=months)
+		endDate = endDate.replace(year=years)
+	if 'd' in period:
+		days = int(period.rstrip('d'))
+		endDate = endDate + timedelta(days=days)
+
+	for single_date in daterange(startDate, endDate):
+		datestr = '{}{:02d}{:02d}'.format(single_date.year, single_date.month, single_date.day)
+		print('update MI_QFIIS ', datestr)
+		update_daily_MI_QFIIS(single_date.year, single_date.month, single_date.day, writFile=True)
+		time.sleep(10)		
+
+def get_daily_MI_Margin(stock, year, month, day):
+	datestr = '{}{:02d}{:02d}'.format(year, month, day)
+	
+	try:
+		df = pd.read_csv('history/MI_QFIIS/'+datestr+'.csv')
+		if df.empty == True:
+			return 0
+		ratio = df['全體外資及陸資持股比率'].loc[df['證券代號'] == stock]
+		if ratio.empty == True:
+			return 0
+		return ratio.values[0]
+	except:
+		return 0
+		
 def update_daily_3II_Summary(startDate, period):
 	years = 0
 	months = 0
