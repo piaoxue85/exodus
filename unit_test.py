@@ -14,6 +14,7 @@ import argparse
 from collections import OrderedDict
 import datetime
 import math
+import info_main
 
 def main():
 	if False:
@@ -112,8 +113,13 @@ def main():
 					get_daily_3j('2330', 2018, 1, 4)
 		print('{}, {}, {}, {}, {}, {}'.format(foreign_buy, foreign_sell, trust_buy, trust_sell, dealer_buy, dealer_sell))
 
-	if True:
+	if False:
 		startDate = date(2016, 1, 1)
 		update_daily_3j_period(startDate, '1Y')
+	
+	if True:
+		plt.rcParams['font.sans-serif'] = ['simhei']
+		plt.rcParams['figure.figsize'] = [16, 9]	
+		info_main.draw_share_holders('9921', u'股權分散表', 'share_holders.png')
 		
 main()

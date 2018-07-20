@@ -15,7 +15,7 @@ import datetime
 import json
 import os.path
 import text2png
-
+from sklearn.preprocessing import MinMaxScaler
 #def draw_divi(stock, df_div_hi)
 
 def output_div(stock, df_main, df_div_all):
@@ -111,6 +111,106 @@ def draw_info_div(df_info, title, pngName):
 	else:
 		plt.show()
 		
+		
+def draw_share_holders(stock, title, pngName):
+
+	df_raw = pd.read_csv('history/share/{}.csv'.format(stock))
+	_columns = [	'Date', '1-10', '11-50', '51-100', '101-200', '201-1000', '1001-', \
+					'1-10(%)', '11-50(%)', '51-100(%)', '101-200(%)', '201-1000(%)', '1001-(%)',\
+					'1-10(d%)', '11-50(d%)', '51-100(d%)', '101-200(d%)', '201-1000(d%)', '1001-(d%)'
+				]
+	df_share = pd.DataFrame(columns=_columns)
+	dateList = np.unique(df_raw['日期'].values)
+	for d in dateList:
+		df = df_raw[df_raw['日期']==d]
+		#df.rename(columns={	'比例': 'percent'})
+		grp1_10 = (df[df['持股']=='1-999']['人數'].values[0] + df[df['持股']=='1000-5000']['人數'].values[0] + df[df['持股']=='5001-10000']['人數'].values[0])
+		grp11_50 = (df[df['持股']=='10001-15000']['人數'].values[0] + df[df['持股']=='15001-20000']['人數'].values[0] + df[df['持股']=='20001-30000']['人數'].values[0] + \
+					df[df['持股']=='30001-40000']['人數'].values[0] + df[df['持股']=='40001-50000']['人數'].values[0])
+		grp51_100 = df[df['持股']=='50001-100000']['人數'].values[0]
+		grp101_200 = df[df['持股']=='100001-200000']['人數'].values[0]
+		grp201_1k = (df[df['持股']=='200001-400000']['人數'].values[0] + df[df['持股']=='400001-600000']['人數'].values[0] +\
+						df[df['持股']=='400001-600000']['人數'].values[0] + df[df['持股']=='600001-800000']['人數'].values[0] +\
+						df[df['持股']=='800001-1000000']['人數'].values[0])
+		
+		grp1k = df[df['持股']=='1000001']['人數'].values[0]
+
+		grp1_10_p = (df[df['持股']=='1-999']['比例'].values[0] + df[df['持股']=='1000-5000']['比例'].values[0] + df[df['持股']=='5001-10000']['比例'].values[0])
+		grp11_50_p = (df[df['持股']=='10001-15000']['比例'].values[0] + df[df['持股']=='15001-20000']['比例'].values[0] + df[df['持股']=='20001-30000']['比例'].values[0] + \
+					df[df['持股']=='30001-40000']['比例'].values[0] + df[df['持股']=='40001-50000']['比例'].values[0])
+		grp51_100_p = df[df['持股']=='50001-100000']['比例'].values[0]
+		grp101_200_p = df[df['持股']=='100001-200000']['比例'].values[0]
+		grp201_1k_p = (df[df['持股']=='200001-400000']['比例'].values[0] + df[df['持股']=='400001-600000']['比例'].values[0] +\
+						df[df['持股']=='400001-600000']['比例'].values[0] + df[df['持股']=='600001-800000']['比例'].values[0] +\
+						df[df['持股']=='800001-1000000']['比例'].values[0])
+		
+		grp1k_p = (df[df['持股']=='1000001']['比例'].values[0])
+		valList = [d, grp1_10, grp11_50, grp51_100, grp101_200, grp201_1k, grp1k, \
+					grp1_10_p, grp11_50_p, grp51_100_p, grp101_200_p, grp201_1k_p, grp1k_p,\
+					0,0,0,0,0,0]
+		_new = pd.DataFrame([valList],columns=_columns)
+		df_share = df_share.append(_new, ignore_index=True)
+		
+	df_share = df_share.sort_values(by=['Date'], ascending=True)
+	print(df_share)
+	
+	_text = '中位數 '
+	_mean = np.median(df_share['1-10(%)'])
+	df_share['1-10(d%)'] = df_share['1-10(%)']-_mean
+	_text = _text + '1-10:{:.2f}% '.format(_mean)	
+	_mean = np.median(df_share['11-50(%)'])
+	df_share['11-50(d%)'] = df_share['11-50(%)']-_mean
+	_text = _text + '11-50:{:.2f}% '.format(_mean)
+	_mean = np.median(df_share['51-100(%)'])
+	df_share['51-100(d%)'] = df_share['51-100(%)']-_mean
+	_text = _text + '51-100:{:.2f}% '.format(_mean)
+	_mean = np.median(df_share['101-200(%)'])
+	df_share['101-200(d%)'] = df_share['101-200(%)']-_mean
+	_text = _text + '101-200:{:.2f}% '.format(_mean)
+	_mean = np.median(df_share['201-1000(%)'])
+	df_share['201-1000(d%)'] = df_share['201-1000(%)']-_mean
+	_text = _text + '201-1000:{:.2f}% '.format(_mean)
+	_mean = np.median(df_share['1001-(%)'])
+	df_share['1001-(d%)'] = df_share['1001-(%)']-_mean
+	_text = _text + '1001-:{:.2f}% '.format(_mean)
+	
+	fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+	fig.suptitle(stock + '   ' + title, fontsize=24)
+
+	linestyle = ['--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':']
+	for col,lstyle in zip(df_share.columns, linestyle):
+		if 'd%' not in col:
+			continue
+		if col == '1-10(d%)':
+			lstyle = '-'
+		ax1.plot(df_share['Date'], df_share[col], linestyle=lstyle, label=col)
+	# draw grid
+	ax1.legend(loc='upper left')
+	ax1.grid()
+	
+	for col in df_share.columns:
+		if col == 'Date':
+			continue
+		if df_share[col].dtypes == np.float64:
+			df_share[col] = df_share[col] * 100
+		df_share[col] = df_share[col].astype(int)
+		df_share[col] = tanh_norm(df_share[col])
+	print(df_share)	
+	
+	for col,lstyle in zip(df_share.columns, linestyle):
+		if 'd%' in col:
+			continue
+		if '%' not in col:
+			continue
+		if col == '1-10(%)':
+			lstyle = '-'
+		ax2.plot(df_share['Date'], df_share[col], linestyle=lstyle, label=col)
+	# draw grid
+	ax1.text(0, 1.01, _text, transform=ax1.transAxes, fontsize=18)	
+	ax2.legend(loc='upper left')
+	ax2.grid()
+	plt.savefig(pngName)
+	
 def draw_ROE(df_ROE, title, pngName):
 
 	_year = range(2006, 2018)
