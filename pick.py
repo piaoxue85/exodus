@@ -433,6 +433,7 @@ def main():
 				('3j_foreign_30.png', '近30日外資進出', True),
 				('3j_trust_30.png', '近30日投信進出', True),
 				('3j_dealer_30.png', '近30日自營商進出', True),
+				('share_holders.png', '股權分散表', True),
 				('revenue.png', '營收', True),
 				('EPS.png', 'EPS', True),
 				('ROE.png', '股東權益', True),

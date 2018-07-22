@@ -114,7 +114,12 @@ def draw_info_div(df_info, title, pngName):
 		
 def draw_share_holders(stock, title, pngName):
 
-	df_raw = pd.read_csv('history/share/{}.csv'.format(stock))
+	try:
+		df_raw = pd.read_csv('history/share/{}.csv'.format(stock))
+	except:
+		print('unable to read history/share/{}.csv'.format(stock))
+		return
+
 	_columns = [	'Date', '1-10', '11-50', '51-100', '101-200', '201-1000', '1001-', \
 					'1-10(%)', '11-50(%)', '51-100(%)', '101-200(%)', '201-1000(%)', '1001-(%)',\
 					'1-10(d%)', '11-50(d%)', '51-100(d%)', '101-200(d%)', '201-1000(d%)', '1001-(d%)'
@@ -206,6 +211,7 @@ def draw_share_holders(stock, title, pngName):
 			lstyle = '-'
 		ax2.plot(df_share['Date'], df_share[col], linestyle=lstyle, label=col)
 	# draw grid
+	plt.xticks(rotation=70)
 	ax1.text(0, 1.01, _text, transform=ax1.transAxes, fontsize=18)	
 	ax2.legend(loc='upper left')
 	ax2.grid()
@@ -403,7 +409,10 @@ def main(args):
 		draw_ProfitMargin(	df_gmargin[df_gmargin['stock']==stock_id], 
 							df_nmargin[df_nmargin['stock']==stock_id],
 							stock_id+'  '+stock_name + ' 12季毛利率', pngName, True)
-		
+		# draw 股權分散表
+		pngName = stockPath+'/share_holders.png'
+		draw_share_holders(stock_id, u'股權分散表', pngName)
+
 		# draw crude oil price
 		pngName = stockPath+'/oil.png'
 		df = pd.read_csv('history/crude_oil_price.csv')
