@@ -9,7 +9,8 @@ import matplotlib
 import utility
 from matplotlib.ticker import Formatter
 from matplotlib.dates import MonthLocator, WeekdayLocator, DayLocator, DateFormatter, AutoDateFormatter, AutoDateLocator, date2num, num2date
-
+from matplotlib.patches import Rectangle
+from matplotlib.lines import Line2D
 
 class ta_draw(object):
 
@@ -208,12 +209,31 @@ class ta_draw(object):
 		ymax = np.max(self.df['close'])
 		ax1.set_ylim(ymin*0.85, ymax*1.15)
 		# set xlim by date
-		ax1.set_xlim(self.df['Date'].loc[0], self.df['Date'].loc[len(self.df['Date'])-1])
+		#ax1.set_xlim(self.df['Date'].loc[0], self.df['Date'].loc[len(self.df['Date'])-1])
+		ax1.set_xlim(-1, len(self.df))
 		ax1_orig_xlim = ax1.get_xlim()
 		# plot the close value
-		ax1.plot(self.df['Date'], self.df['close'])
+		#ax1.plot(self.df['Date'], self.df['close'], color='C3')
+		if len(self.df) > 200:
+			gap = 20
+		elif len(self.df) > 100:
+			gap = 5
+		else:
+			gap = 1
+		plt.xticks(self.df.index[::gap], self.df['DateStr'].values[::gap])
+		ax1.plot(self.df.index, self.df['close'], color='C3')
+		
+		for (x, close, high, low, open) in zip(self.df.index, self.df['close'], self.df['high'], self.df['low'], self.df['open']):
+			_line = Line2D([x, x], [high, low], linewidth=2, color='black')
+			ax1.add_line(_line)
+			color = 'black' if close < open else 'white'
+			y = min(close, open)
+			rect = Rectangle((x-0.15, y),0.3,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=100)
+			ax1.add_patch(rect)
+		
 		# draw grid
-		ax1.grid()
+		if (len(self.df) < 200):
+			ax1.grid()
 		
 		_text = '收盤價 ' + str(ymin) + ' ~ ' + str(ymax)
 		
@@ -225,9 +245,9 @@ class ta_draw(object):
 		# set y label for ax1_1
 		ax1_1.set_ylabel('Vol')
 		# plot the volume value
-		ax1_1.plot(self.df['Date'], self.df['volume'], 'C1', label='Vol')
+		ax1_1.plot(self.df.index, self.df['volume'], 'C4', label='Vol')
 		# draw grid
-		ax1_1.grid(color='C1', linestyle='-', linewidth=0.5)
+		ax1_1.grid(color='C4', linestyle='--', linewidth=0.5)
 		_text = _text + '    成交量 {:.1f} - {:.1f}'.format(ymin,ymax)
 		dateStr = '期間 ' + self.df['DateStr'].loc[:1].values[0] + ' - ' + self.df['DateStr'].tail(1).values[0]
 		_text = _text + '  ' + dateStr
@@ -249,7 +269,7 @@ class ta_draw(object):
 		
 		# set figure 
 		self.fig.suptitle(self.title, fontsize=18)
-		self.fig.autofmt_xdate(rotation=70)
+		#self.fig.autofmt_xdate(rotation=70)
 		
 		self.draw_basic(self.ax1, self.ax1_1)
 		
@@ -335,88 +355,75 @@ class ta_draw(object):
 	def draw_price_volume(self, title=''):
 		
 		self.fig, self.ax1, = plt.subplots(1, 1, sharex=True)
-			
+		plt.xticks(rotation=70)
 		self.ax1_1 = self.ax1.twinx()
 		
 		# set figure 
 		self.fig.suptitle(self.title+title, fontsize=24)
-		self.fig.autofmt_xdate(rotation=70)
+		#self.fig.autofmt_xdate(rotation=70)
 		
 		self.draw_basic(self.ax1, self.ax1_1)
-		if len(self.df) < 40:
-			self.ax1.xaxis.set_major_locator(DayLocator())
-		elif len(self.df) < 100:
-			self.ax1.xaxis.set_major_locator(WeekdayLocator())
-			self.ax1.xaxis.set_minor_locator(DayLocator())
-		else:
-			self.ax1.xaxis.set_major_locator(MonthLocator())
-			self.ax1.xaxis.set_minor_locator(WeekdayLocator())
-		self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+		#if len(self.df) < 40:
+		#	self.ax1.xaxis.set_major_locator(DayLocator())
+		#elif len(self.df) < 100:
+		#	self.ax1.xaxis.set_major_locator(WeekdayLocator())
+		#	self.ax1.xaxis.set_minor_locator(DayLocator())
+		#else:
+		#	self.ax1.xaxis.set_major_locator(MonthLocator())
+		#	self.ax1.xaxis.set_minor_locator(WeekdayLocator())
+		#self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
 		
-		plt.connect('motion_notify_event', self.mouse_move)	
-		#plt.connect('scroll_event', cursor.on_scroll)
-		plt.connect('button_press_event', self.on_scroll)
-		plt.connect('key_press_event', self.on_key)
-	
-		# set mouse scroll event
-
-		# draw lines for cursor focus
-		self.lx1 = self.ax1.axhline(color='k', y=self.y1_df.loc[0], linewidth=0.5, linestyle='--')  # the horiz line
-		self.ly1 = self.ax1.axvline(color='k', x=self.x_df.loc[0], linewidth=0.5, linestyle='--')  # the vert line
 		
 		# text location in axes coords
 
 		self.txt1 = self.ax1.text(0, 1.05, "", transform=self.ax1.transAxes)
-		
-		if self.pngName == None:
-			plt.show()		
-		else:
-			plt.savefig(self.pngName)			
+		plt.savefig(self.pngName)			
 			
 			
 	def draw_ta(self, type, pngName):
 		self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, sharex=True)
+		plt.xticks(rotation=70)
 		self.ax1_1 = self.ax1.twinx()
 		
 		# set figure 
 		self.fig.suptitle(self.title + '   ' + type, fontsize=24)
-		self.fig.autofmt_xdate(rotation=70)
+		#self.fig.autofmt_xdate(rotation=70)
 		
 		self.draw_basic(self.ax1, self.ax1_1)
 		
 		if type == 'KD':
 			# plot the KD
 			self.ax2_lines = dict()
-			self.ax2_lines['k'] = self.ax2.plot(self.df['Date'], self.df['k'])[0]
-			self.ax2_lines['d'] = self.ax2.plot(self.df['Date'], self.df['d'])[0]
+			self.ax2_lines['k'] = self.ax2.plot(self.df.index, self.df['k'])[0]
+			self.ax2_lines['d'] = self.ax2.plot(self.df.index, self.df['d'])[0]
 			# plot RSI		
-			self.ax2_lines['RSI'] = self.ax2.plot(self.df['Date'], self.df['RSI'])[0]
+			self.ax2_lines['RSI'] = self.ax2.plot(self.df.index, self.df['RSI'])[0]
 			self.ax2_lines['RSI'].set_linewidth(0.3)
 			self.ax2.legend(['K', 'D', 'RSI'], loc='upper left')	
 
 		if type == 'SMA':
 			# plot the SMA
 			self.ax2_lines = dict()
-			self.ax2_lines['SMA'] = self.ax2.plot(self.df['Date'], self.df['SMA'])[0]
+			self.ax2_lines['SMA'] = self.ax2.plot(self.df.index, self.df['SMA'])[0]
 
 		if type == 'BIAS':
 			# plot the BIAS
 			self.ax2_lines = dict()
-			self.ax2_lines['BIAS'] = self.ax2.plot(self.df['Date'], self.df['BIAS'])[0]
+			self.ax2_lines['BIAS'] = self.ax2.plot(self.df.index, self.df['BIAS'])[0]
 
 		if type == 'MACD':
 			# plot the MACD
 			self.ax2_lines = dict()
-			self.ax2_lines['macd'] = self.ax2.plot(self.df['Date'], self.df['macd'])[0]
-			self.ax2_lines['macdsignal'] = self.ax2.plot(self.df['Date'], self.df['macdsignal'])[0]
-			self.ax2_lines['macdhist'] = self.ax2.plot(self.df['Date'], self.df['macdhist'])[0]
+			self.ax2_lines['macd'] = self.ax2.plot(self.df.index, self.df['macd'])[0]
+			self.ax2_lines['macdsignal'] = self.ax2.plot(self.df.index, self.df['macdsignal'])[0]
+			self.ax2_lines['macdhist'] = self.ax2.plot(self.df.index, self.df['macdhist'])[0]
 			self.ax2.legend(['MACD', 'Signal', 'HIST'], loc='upper left')	
 
 		if type == 'PER':
 			# plot the PER
 			self.fig.suptitle(self.title + '   ' + '本益比', fontsize=18)
 			self.ax2_lines = dict()
-			self.ax2_lines['PER'] = self.ax2.plot(self.df['Date'], self.df['PER'])[0]
+			self.ax2_lines['PER'] = self.ax2.plot(self.df.index, self.df['PER'])[0]
 			min = self.df['PER'].min()
 			max = self.df['PER'].max()
 			current = self.df['PER'].tail(1).values[0]
@@ -427,7 +434,7 @@ class ta_draw(object):
 			# plot the MI_QFIIS
 			self.fig.suptitle(self.title + '   ' + '	外資比例', fontsize=18)
 			self.ax2_lines = dict()
-			self.ax2_lines['MI_QFIIS'] = self.ax2.plot(self.df['Date'], self.df['MI_QFIIS'])[0]
+			self.ax2_lines['MI_QFIIS'] = self.ax2.plot(self.df.index, self.df['MI_QFIIS'])[0]
 			min = self.df['MI_QFIIS'].loc[self.df['MI_QFIIS']!=0].min()
 			max = self.df['MI_QFIIS'].max()
 			current = self.df['MI_QFIIS'].tail(1).values[0]
@@ -437,8 +444,8 @@ class ta_draw(object):
 		if type == '3j_foreign':
 			# plot the 3j
 			self.fig.suptitle(self.title + '   ' + '   外資進出', fontsize=18)
-			self.ax2.plot(self.df['Date'], self.df['foreign_buy'])[0]
-			self.ax2.plot(self.df['Date'], self.df['foreign_sell'])[0]
+			self.ax2.plot(self.df.index, self.df['foreign_buy'])[0]
+			self.ax2.plot(self.df.index, self.df['foreign_sell'])[0]
 			min = self.df['foreign_buy'].loc[self.df['foreign_buy']!=0].min()
 			max = self.df['foreign_buy'].max()
 			current = self.df['foreign_buy'].tail(1).values[0]
@@ -453,8 +460,8 @@ class ta_draw(object):
 		if type == '3j_trust':
 			# plot the 3j
 			self.fig.suptitle(self.title + '   ' + '   投信進出', fontsize=18)
-			self.ax2.plot(self.df['Date'], self.df['trust_buy'])[0]
-			self.ax2.plot(self.df['Date'], self.df['trust_sell'])[0]
+			self.ax2.plot(self.df.index, self.df['trust_buy'])[0]
+			self.ax2.plot(self.df.index, self.df['trust_sell'])[0]
 			min = self.df['trust_buy'].loc[self.df['trust_buy']!=0].min()
 			max = self.df['trust_buy'].max()
 			current = self.df['trust_buy'].tail(1).values[0]
@@ -469,8 +476,8 @@ class ta_draw(object):
 		if type == '3j_dealer':
 			# plot the 3j
 			self.fig.suptitle(self.title + '   ' + '   自營商進出', fontsize=18)
-			self.ax2.plot(self.df['Date'], self.df['dealer_buy'])[0]
-			self.ax2.plot(self.df['Date'], self.df['dealer_sell'])[0]
+			self.ax2.plot(self.df.index, self.df['dealer_buy'])[0]
+			self.ax2.plot(self.df.index, self.df['dealer_sell'])[0]
 			min = self.df['dealer_buy'].loc[self.df['dealer_buy']!=0].min()
 			max = self.df['dealer_buy'].max()
 			current = self.df['dealer_buy'].tail(1).values[0]
@@ -487,7 +494,7 @@ class ta_draw(object):
 			self.fig.suptitle(self.title + '   ' + '營收', fontsize=18)
 			df_to_draw = self.df[self.df['revenue']!=0]
 			self.ax2_lines = dict()
-			self.ax2_lines['revenue'] = self.ax2.plot(df_to_draw['Date'], df_to_draw['revenue'])[0]
+			self.ax2_lines['revenue'] = self.ax2.plot(df_to_draw.index, df_to_draw['revenue'])[0]
 			try:
 				min = self.df['revenue'].loc[self.df['revenue']!=0].min()/1000
 				max = self.df['revenue'].max()/1000
@@ -500,23 +507,23 @@ class ta_draw(object):
 			self.ax2.text(0, 1.02, _text, transform=self.ax2.transAxes, fontsize=18)
 			
 		# for x-axis tick label
-		if len(self.df) < 40:
-			self.ax1.xaxis.set_major_locator(DayLocator())
-		elif len(self.df) < 100:
-			self.ax1.xaxis.set_major_locator(WeekdayLocator())
-			self.ax1.xaxis.set_minor_locator(DayLocator())
-		else:
-			self.ax1.xaxis.set_major_locator(MonthLocator())
-			self.ax1.xaxis.set_minor_locator(WeekdayLocator())
-		self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
+		#if len(self.df) < 40:
+		#	self.ax1.xaxis.set_major_locator(DayLocator())
+		#elif len(self.df) < 100:
+		#	self.ax1.xaxis.set_major_locator(WeekdayLocator())
+		#	self.ax1.xaxis.set_minor_locator(DayLocator())
+		#else:
+		#	self.ax1.xaxis.set_major_locator(MonthLocator())
+		#	self.ax1.xaxis.set_minor_locator(WeekdayLocator())
+		#self.ax1.xaxis.set_major_formatter(DateFormatter('%Y-%m-%d'))
 
-		self.ax1.fmt_xdata = DateFormatter('%Y-%m-%d %H:%M:%S')		
+		#self.ax1.fmt_xdata = DateFormatter('%Y-%m-%d %H:%M:%S')		
 			
 			
-		if pngName == None:
-			plt.show()		
-		else:
-			plt.savefig(pngName)
+		#if pngName == None:
+		#	plt.show()		
+		#else:
+		plt.savefig(pngName)
 			
 			
 			

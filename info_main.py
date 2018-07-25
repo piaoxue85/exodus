@@ -112,7 +112,7 @@ def draw_info_div(df_info, title, pngName):
 		plt.show()
 		
 		
-def draw_share_holders(stock, title, pngName):
+def draw_share_holders(stock, df_price, title, pngName):
 
 	try:
 		df_raw = pd.read_csv('history/share/{}.csv'.format(stock))
@@ -126,6 +126,9 @@ def draw_share_holders(stock, title, pngName):
 				]
 	df_share = pd.DataFrame(columns=_columns)
 	dateList = np.unique(df_raw['日期'].values)
+	
+
+	
 	for d in dateList:
 		df = df_raw[df_raw['日期']==d]
 		#df.rename(columns={	'比例': 'percent'})
@@ -181,7 +184,19 @@ def draw_share_holders(stock, title, pngName):
 	
 	fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
 	fig.suptitle(stock + '   ' + title, fontsize=24)
-
+	plt.xticks(rotation=70)
+	
+	ax1_1 = ax1.twinx()
+	
+	DateList = df_share['Date'].values
+	df_price_new = pd.DataFrame(columns=df_price.columns)
+	for d in DateList:
+		_new = df_price[df_price['Date']==d]
+		if _new.empty == True:
+			_new = df_price[df_price['Date']<d].tail(1)
+		df_price_new = df_price_new.append(_new, ignore_index=True)
+	df_price_new.reset_index(inplace=True)
+	
 	linestyle = ['--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':','--','-.',':']
 	for col,lstyle in zip(df_share.columns, linestyle):
 		if 'd%' not in col:
@@ -190,7 +205,9 @@ def draw_share_holders(stock, title, pngName):
 			lstyle = '-'
 		ax1.plot(df_share['Date'], df_share[col], linestyle=lstyle, label=col)
 	# draw grid
+	ax1_1.plot(df_share['Date'], df_price_new['close'], label='close', color='black')
 	ax1.legend(loc='upper left')
+	ax1_1.legend(loc='upper right')
 	ax1.grid()
 	
 	for col in df_share.columns:
@@ -211,7 +228,7 @@ def draw_share_holders(stock, title, pngName):
 			lstyle = '-'
 		ax2.plot(df_share['Date'], df_share[col], linestyle=lstyle, label=col)
 	# draw grid
-	plt.xticks(rotation=70)
+#	plt.xticks(rotation=70)
 	ax1.text(0, 1.01, _text, transform=ax1.transAxes, fontsize=18)	
 	ax2.legend(loc='upper left')
 	ax2.grid()
@@ -355,68 +372,71 @@ def main(args):
 		draw = ta_draw(stock_id+'  '+stock_name, df_main, None, pngName)
 		draw.draw_price_volume()		
 
-		# draw PER
-		pngName = stockPath+'/PER.png'
-		draw.draw_ta('PER', pngName)
+		if True:
+			# draw PER
+			pngName = stockPath+'/PER.png'
+			draw.draw_ta('PER', pngName)
 
-		# draw MI_QFIIS
-		pngName = stockPath+'/MI_QFIIS.png'
-		draw.draw_ta('MI_QFIIS', pngName)
+			# draw MI_QFIIS
+			pngName = stockPath+'/MI_QFIIS.png'
+			draw.draw_ta('MI_QFIIS', pngName)
 
-		# draw 3j
-		pngName = stockPath+'/3j_foreign.png'
-		draw.draw_ta('3j_foreign', pngName)		
-		# draw 3j
-		pngName = stockPath+'/3j_trust.png'
-		draw.draw_ta('3j_trust', pngName)
-		# draw 3j
-		pngName = stockPath+'/3j_dealer.png'
-		draw.draw_ta('3j_dealer', pngName)		
-		
-		# draw revenue
-		pngName = stockPath+'/revenue.png'
-		draw.draw_ta('revenue', pngName)
+			# draw 3j
+			pngName = stockPath+'/3j_foreign.png'
+			draw.draw_ta('3j_foreign', pngName)		
+			# draw 3j
+			pngName = stockPath+'/3j_trust.png'
+			draw.draw_ta('3j_trust', pngName)
+			# draw 3j
+			pngName = stockPath+'/3j_dealer.png'
+			draw.draw_ta('3j_dealer', pngName)		
+			
+			# draw revenue
+			pngName = stockPath+'/revenue.png'
+			draw.draw_ta('revenue', pngName)
 
 		for p in [240, 120, 60, 30]:
 			df_short = df_main.tail(p)
 			df_short.reset_index(drop=True, inplace=True)
 			pngName = stockPath+'/price_volume_'+str(p)+'.png'
-			draw = ta_draw(stock_id+'  '+stock_name + '       {}'.format(p), df_short, None, pngName)
+			draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
 			draw.draw_price_volume(str(p))
-			# draw MI_QFIIS
-			pngName = stockPath+'/MI_QFIIS_'+str(p)+'.png'
-			draw.draw_ta('MI_QFIIS', pngName)
-			# draw 3j
-			pngName = stockPath+'/3j_foreign_'+str(p)+'.png'
-			draw.draw_ta('3j_foreign', pngName)
-			# draw 3j
-			pngName = stockPath+'/3j_trust_'+str(p)+'.png'
-			draw.draw_ta('3j_trust', pngName)	
-			# draw 3j
-			pngName = stockPath+'/3j_dealer_'+str(p)+'.png'
-			draw.draw_ta('3j_dealer', pngName)			
+			if True:
+				# draw MI_QFIIS
+				pngName = stockPath+'/MI_QFIIS_'+str(p)+'.png'
+				draw.draw_ta('MI_QFIIS', pngName)
+				# draw 3j
+				pngName = stockPath+'/3j_foreign_'+str(p)+'.png'
+				draw.draw_ta('3j_foreign', pngName)
+				# draw 3j
+				pngName = stockPath+'/3j_trust_'+str(p)+'.png'
+				draw.draw_ta('3j_trust', pngName)	
+				# draw 3j
+				pngName = stockPath+'/3j_dealer_'+str(p)+'.png'
+				draw.draw_ta('3j_dealer', pngName)			
 		
-		# draw EPS and dividen
-		pngName = stockPath+'/EPS.png'
-		draw_info_div(df_div, stock_id+'  '+stock_name + ' 股利', pngName)
+		if True:
+			# draw EPS and dividen
+			pngName = stockPath+'/EPS.png'
+			draw_info_div(df_div, stock_id+'  '+stock_name + ' 股利', pngName)
 
-		# draw ROE
-		pngName = stockPath+'/ROE.png'
-		draw_ROE(df_ROE[df_ROE['stock']==stock_id], stock_id+'  '+stock_name + ' 股東權益報酬率', pngName)
-		
-		# draw gross margin
-		pngName = stockPath+'/margin_12Q.png'
-		draw_ProfitMargin(	df_gmargin[df_gmargin['stock']==stock_id], 
-							df_nmargin[df_nmargin['stock']==stock_id],
-							stock_id+'  '+stock_name + ' 12季毛利率', pngName, True)
-		# draw 股權分散表
-		pngName = stockPath+'/share_holders.png'
-		draw_share_holders(stock_id, u'股權分散表', pngName)
+			# draw ROE
+			pngName = stockPath+'/ROE.png'
+			draw_ROE(df_ROE[df_ROE['stock']==stock_id], stock_id+'  '+stock_name + ' 股東權益報酬率', pngName)
+			
+			# draw gross margin
+			pngName = stockPath+'/margin_12Q.png'
+			draw_ProfitMargin(	df_gmargin[df_gmargin['stock']==stock_id], 
+								df_nmargin[df_nmargin['stock']==stock_id],
+								stock_id+'  '+stock_name + ' 12季毛利率', pngName, True)
+			# draw 股權分散表
+			pngName = stockPath+'/share_holders.png'
+			draw_share_holders(stock_id, df_main, u'股權分散表', pngName)
 
-		# draw crude oil price
-		pngName = stockPath+'/oil.png'
-		df = pd.read_csv('history/crude_oil_price.csv')
-		draw_oil_price(df, '原油價格', pngName)
+			# draw crude oil price
+			pngName = stockPath+'/oil.png'
+			df = pd.read_csv('history/crude_oil_price.csv')
+			draw_oil_price(df, '原油價格', pngName)
 		
 if __name__ == '__main__':
 
