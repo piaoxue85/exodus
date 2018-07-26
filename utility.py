@@ -12,6 +12,7 @@ import time
 import json
 import os
 from googlefinance.client import get_price_data, get_prices_data, get_prices_time_data
+from kline import kline
 
 def tanh_norm(x):
 	u = np.mean(x)
@@ -495,6 +496,11 @@ def readStockHistory(stock, period, raw=True):
 		df_main['dealer_buy'] = pd.Series([float(0)]*len(df_main), df_main.index)		
 	if 'dealer_sell' not in df_main.columns.values.tolist():
 		df_main['dealer_sell'] = pd.Series([float(0)]*len(df_main), df_main.index)
+	#if 'kline' not in df_main.columns.values.tolist():
+	df_main['kline'] = pd.Series(['']*len(df_main), df_main.index)
+	_k = kline(stock, df_main)
+	_k.pattern_recogintion()
+
 		
 	df_main = df_main.dropna()
 	total = len(df_main)

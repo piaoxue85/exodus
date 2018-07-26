@@ -336,7 +336,7 @@ def draw_oil_price(df_info, title, pngName):
 	if pngName != None:
 		plt.savefig(pngName)
 	else:
-		plt.show()					
+		plt.show()
 					
 def main(args):
 

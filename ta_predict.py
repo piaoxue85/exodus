@@ -14,11 +14,14 @@ from matplotlib.lines import Line2D
 
 class ta_draw(object):
 
-	def __init__(self, title, df, th, pngName=None):
+	def __init__(self, title, df, th, pngName=None, pngSize=1, kLineWidth=2, kRectWidth=0.3):
 		#matplotlib.rc('font', family='Arial')
 		#plt.rc('font', family='simhei')
 		plt.rcParams['font.sans-serif'] = ['simhei']
-		plt.rcParams['figure.figsize'] = [16, 9]
+		plt.rcParams['figure.figsize'] = [16*pngSize, 9*pngSize]
+		self.kLineWidth = kLineWidth
+		self.kRectWidth = kRectWidth
+		self.pngSize = pngSize
 		self.ax1_orig_xlim = None
 		self.ax1_txt = None
 		self.ax2_txt = None
@@ -221,19 +224,24 @@ class ta_draw(object):
 		else:
 			gap = 1
 		plt.xticks(self.df.index[::gap], self.df['DateStr'].values[::gap])
-		ax1.plot(self.df.index, self.df['close'], color='C3')
+		ax1.plot(self.df.index, self.df['close'], color='C3', zorder=1)
 		
 		for (x, close, high, low, open) in zip(self.df.index, self.df['close'], self.df['high'], self.df['low'], self.df['open']):
-			_line = Line2D([x, x], [high, low], linewidth=2, color='black')
+			_line = Line2D([x, x], [high, low], linewidth=self.kLineWidth, color='black', zorder=2)
 			ax1.add_line(_line)
 			color = 'black' if close < open else 'white'
 			y = min(close, open)
-			rect = Rectangle((x-0.15, y),0.3,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=100)
+			rect = Rectangle((x-self.kRectWidth/2, y),self.kRectWidth,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=2)
 			ax1.add_patch(rect)
+			if self.df['kline'].loc[x] != '':
+				_line = Line2D([x, x], [high+10, high+2], linewidth=self.kLineWidth*2, color='red', zorder=2)
+				ax1.add_line(_line)
+				ax1.text(x, high+12, self.df['kline'].loc[x], horizontalalignment='center', fontsize=12*self.pngSize)
+		
 		
 		# draw grid
 		if (len(self.df) < 200):
-			ax1.grid()
+			ax1.grid(zorder=1)
 		
 		_text = '收盤價 ' + str(ymin) + ' ~ ' + str(ymax)
 		
@@ -245,19 +253,26 @@ class ta_draw(object):
 		# set y label for ax1_1
 		ax1_1.set_ylabel('Vol')
 		# plot the volume value
-		ax1_1.plot(self.df.index, self.df['volume'], 'C4', label='Vol')
+		#ax1_1.plot(self.df.index, self.df['volume'], 'C4', label='Vol')
+		barList = ax1_1.bar(self.df.index, self.df['volume'], width=1, label='Vol', zorder=0, alpha=0.3)
+		redIdx = self.df[self.df['close'] >= self.df['open']].index
+		greenIdx = self.df[self.df['close'] < self.df['open']].index
+		for g in greenIdx:
+			barList[g].set_color('g')
+		for r in redIdx:
+			barList[r].set_color('r')
 		# draw grid
-		ax1_1.grid(color='C4', linestyle='--', linewidth=0.5)
+		ax1_1.grid(color='C4', linestyle='--', linewidth=0.5, zorder=1)
 		_text = _text + '    成交量 {:.1f} - {:.1f}'.format(ymin,ymax)
 		dateStr = '期間 ' + self.df['DateStr'].loc[:1].values[0] + ' - ' + self.df['DateStr'].tail(1).values[0]
 		_text = _text + '  ' + dateStr
-		ax1.text(0, 1.02, _text, transform=ax1.transAxes, fontsize=18)		
+		ax1.text(0, 1.02, _text, transform=ax1.transAxes, fontsize=18*self.pngSize)		
 
 		# ask matplotlib for the plotted objects and their labels
 		lines, labels = ax1.get_legend_handles_labels()
 		lines2, labels2 = ax1_1.get_legend_handles_labels()
-		ax1_1.legend(lines + lines2, labels + labels2, loc='upper left')			
-		
+		ax1_1.legend(lines + lines2, labels + labels2, loc='upper left', fontsize=18*self.pngSize)			
+
 	def draw(self):
 		
 		if self.th != None:
@@ -355,11 +370,11 @@ class ta_draw(object):
 	def draw_price_volume(self, title=''):
 		
 		self.fig, self.ax1, = plt.subplots(1, 1, sharex=True)
-		plt.xticks(rotation=70)
+		plt.xticks(rotation=70, fontsize=12*self.pngSize)
 		self.ax1_1 = self.ax1.twinx()
 		
 		# set figure 
-		self.fig.suptitle(self.title+title, fontsize=24)
+		self.fig.suptitle(self.title+title, fontsize=24*self.pngSize)
 		#self.fig.autofmt_xdate(rotation=70)
 		
 		self.draw_basic(self.ax1, self.ax1_1)

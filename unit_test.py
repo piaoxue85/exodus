@@ -15,6 +15,7 @@ from collections import OrderedDict
 import datetime
 import math
 import info_main
+from kline import kline
 
 def main():
 	if False:
@@ -117,9 +118,21 @@ def main():
 		startDate = date(2016, 1, 1)
 		update_daily_3j_period(startDate, '1Y')
 	
-	if True:
+	if False:
 		plt.rcParams['font.sans-serif'] = ['simhei']
 		plt.rcParams['figure.figsize'] = [16, 9]	
 		info_main.draw_share_holders('9921', u'股權分散表', 'share_holders.png')
-		
+	
+	if True:
+		#stockList = readStockList('policy/top_watch.csv')
+		stockList = readStockList('policy/test1.csv')
+		for stock in stockList:
+			empty, df_price = readStockHistory(stock, 240, raw=False)
+			_k = kline(stock, df_price)
+			_k.pattern_recogintion()
+			print('')
+			#print(stock, '::', _val)
+			pngName = 'test_result'+'/kline_test.png'
+			draw = ta_draw(stock+'  '+'巨大 kline', df_price, None, pngName, pngSize=3, kLineWidth=1, kRectWidth=0.8)
+			draw.draw_price_volume()
 main()
