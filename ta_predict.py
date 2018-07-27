@@ -11,6 +11,7 @@ from matplotlib.ticker import Formatter
 from matplotlib.dates import MonthLocator, WeekdayLocator, DayLocator, DateFormatter, AutoDateFormatter, AutoDateLocator, date2num, num2date
 from matplotlib.patches import Rectangle
 from matplotlib.lines import Line2D
+from kline import *
 
 class ta_draw(object):
 
@@ -226,18 +227,28 @@ class ta_draw(object):
 		plt.xticks(self.df.index[::gap], self.df['DateStr'].values[::gap])
 		ax1.plot(self.df.index, self.df['close'], color='C3', zorder=1)
 		
+		idx = 0
 		for (x, close, high, low, open) in zip(self.df.index, self.df['close'], self.df['high'], self.df['low'], self.df['open']):
 			_line = Line2D([x, x], [high, low], linewidth=self.kLineWidth, color='black', zorder=2)
 			ax1.add_line(_line)
 			color = 'black' if close < open else 'white'
 			y = min(close, open)
-			rect = Rectangle((x-self.kRectWidth/2, y),self.kRectWidth,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=2)
+			rect = Rectangle((x-self.kRectWidth/2, y),self.kRectWidth,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=3)
 			ax1.add_patch(rect)
 			if self.df['kline'].loc[x] != '':
-				_line = Line2D([x, x], [high+10, high+2], linewidth=self.kLineWidth*2, color='red', zorder=2)
+				if idx % 2 == 0:
+					lineY0 = high+2
+					lineY1 = high+1
+					y = high + 3
+				else:
+					lineY0 = low-1
+					lineY1 = low-2
+					y = low - 3
+				color, meaning = kline_meaning(self.df['kline'].loc[x])
+				_line = Line2D([x, x], [lineY0, lineY1], linewidth=self.kLineWidth*2, color=color, zorder=3)
 				ax1.add_line(_line)
-				ax1.text(x, high+12, self.df['kline'].loc[x], horizontalalignment='center', fontsize=12*self.pngSize)
-		
+				ax1.text(x, y, self.df['kline'].loc[x]+'-'+meaning , horizontalalignment='center', fontsize=12*self.pngSize)
+				idx = idx + 1
 		
 		# draw grid
 		if (len(self.df) < 200):
