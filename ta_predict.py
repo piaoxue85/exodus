@@ -235,19 +235,27 @@ class ta_draw(object):
 			y = min(close, open)
 			rect = Rectangle((x-self.kRectWidth/2, y),self.kRectWidth,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=3)
 			ax1.add_patch(rect)
+			diff = str(close-open)
+			diff_color = 'green' if close < open else 'red'
 			if self.df['kline'].loc[x] != '':
 				if idx % 2 == 0:
-					lineY0 = high+2
-					lineY1 = high+1
-					y = high + 3
+					lineY0 = high+3.6
+					lineY1 = high+2
+					y0 = high + 5.4
+					y1 = high + 4
+					diff_y = high+1
 				else:
-					lineY0 = low-1
-					lineY1 = low-2
-					y = low - 3
+					lineY0 = low-3
+					lineY1 = low-3.6
+					y0 = low - 5
+					y1 = low - 6.4
+					diff_y = low-2
 				color, meaning = kline_meaning(self.df['kline'].loc[x])
 				_line = Line2D([x, x], [lineY0, lineY1], linewidth=self.kLineWidth*2, color=color, zorder=3)
 				ax1.add_line(_line)
-				ax1.text(x, y, self.df['kline'].loc[x]+'-'+meaning , horizontalalignment='center', fontsize=12*self.pngSize)
+				ax1.text(x, diff_y, diff , horizontalalignment='center', fontsize=12*self.pngSize, color=diff_color)
+				ax1.text(x, y0, self.df['kline'].loc[x] , horizontalalignment='center', fontsize=12*self.pngSize)
+				ax1.text(x, y1, meaning , horizontalalignment='center', fontsize=12*self.pngSize)
 				idx = idx + 1
 		
 		# draw grid

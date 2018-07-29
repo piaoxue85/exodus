@@ -194,6 +194,9 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, df_price, comment):
 				print('\t<p>{}</p>'.format(news['content']), file=fhtml)
 	
 	for (img, imgTitle, bInternalLink) in imgList:
+		if img == '' and imgTitle == '':
+			print('<br>', file=fhtml)
+			continue
 		id = img.split('.')[0]
 		_display = 'none'
 		if bInternalLink == True:
