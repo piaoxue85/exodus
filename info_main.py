@@ -29,14 +29,16 @@ def output_div(stock, df_main, df_div_all):
 	year_list = []
 	for year in range(2006, 2019):
 		#df_eps =
-		year_list.append(year)
-		cash_list.append(df['div_'+str(year)+'_cash'].values[0])
-		stock_list.append(df['div_'+str(year)+'_stock'].values[0])
-		payout_list.append(df['payout_ratio_'+str(year)].values[0])
-		yield_list.append(df['yield_'+str(year)].values[0])
-		#eps_list.append(df['div_'+str(year)+'_cash'].values[0]+df['div_'+str(year)+'_stock'].values[0]+1)
-		eps_list.append(df['eps_'+str(year)].values[0])
-		
+		try:
+			year_list.append(year)
+			cash_list.append(df['div_'+str(year)+'_cash'].values[0])
+			stock_list.append(df['div_'+str(year)+'_stock'].values[0])
+			payout_list.append(df['payout_ratio_'+str(year)].values[0])
+			yield_list.append(df['yield_'+str(year)].values[0])
+			#eps_list.append(df['div_'+str(year)+'_cash'].values[0]+df['div_'+str(year)+'_stock'].values[0]+1)
+			eps_list.append(df['eps_'+str(year)].values[0])
+		except:
+			continue
 	df = pd.DataFrame(	{	
 						'year': year_list, 
 						'cash': cash_list, 
@@ -80,6 +82,9 @@ def draw_info_div1(df_info, title, pngName):
 		plt.show()	
 		
 def draw_info_div(df_info, title, pngName):
+
+	if df_info.empty == True:
+		return
 
 	minEPS = df_info['eps'].min()
 	maxEPS = df_info['eps'].max()
@@ -337,7 +342,127 @@ def draw_oil_price(df_info, title, pngName):
 		plt.savefig(pngName)
 	else:
 		plt.show()
+
+def drawOldHistory(args):
+	pd.options.display.float_format = '{:.2f}'.format
+
+	stockList = readStockList(args['file'])
+	if (args['stock'] != ''):
+		_stockList = OrderedDict()
+		_stockList[args['stock']] = stockList[args['stock']]
+		stockList = _stockList
+
+	now = datetime.datetime.now()
+
+	period = 2000
+
+	df_div_all, _ = readDividenHistory('dividen.csv')
+	df_ROE = readROEHistory('ROE_2006_2017.csv')
+	df_gmargin = readGrossMarginProfit12Q()
+	df_nmargin = readNetMarginProfit12Q()
+	for stock in stockList:
+		(stock_id, stock_name) = stockList[stock]
+		stockPath = args['path'] + '/' + stock + '_' + stock_name
+		if os.path.exists(stockPath):
+			print(stock_id+' exists, skip')
+			continue
+
+		empty, df_main = readStockHistory(stock, 9999, raw=False)
+		if empty == True:
+			print('no data')
+			continue
+		os.makedirs(stockPath, exist_ok=True)
+		
+		for year in range(2013, 2019):
+			df_short = df_main[(df_main['Date'].dt.year == year)]
+			period = '{}'.format(year)
+			df_short.reset_index(drop=True, inplace=True)
+			if df_short.empty == True:
+				continue
+			pngName = stockPath+'/price_volume_{}.png'.format(period)
+			draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
+			draw.draw_price_volume(' {}'.format(period), kline=False)				
+			
+			for month in range(1, 13, 2):
+				if year == 2018 and month >= 6:
+					continue
+				df_short = df_main[(df_main['Date'].dt.year == year) & \
+									((df_main['Date'].dt.month == month) | (df_main['Date'].dt.month == month+1))]
+				print('')
+				if df_short.empty == True:
+					continue
 					
+				period = '{}_{}_{}'.format(year, month, month+1)
+				df_short.reset_index(drop=True, inplace=True)
+				pngName = stockPath+'/price_volume_{}.png'.format(period)
+				draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
+				draw.draw_price_volume(' {}'.format(period))				
+
+				# draw MI_QFIIS
+				pngName = stockPath+'/MI_QFIIS_'+str(period)+'.png'
+				draw.draw_ta('MI_QFIIS', pngName)
+				# draw 3j
+				pngName = stockPath+'/3j_foreign_'+str(period)+'.png'
+				draw.draw_ta('3j_foreign', pngName)
+				# draw 3j
+				pngName = stockPath+'/3j_trust_'+str(period)+'.png'
+				draw.draw_ta('3j_trust', pngName)	
+				# draw 3j
+				pngName = stockPath+'/3j_dealer_'+str(period)+'.png'
+				draw.draw_ta('3j_dealer', pngName)							
+
+def drawNew(args):
+
+	pd.options.display.float_format = '{:.2f}'.format
+
+	stockList = readStockList(args['file'])
+	if (args['stock'] != ''):
+		_stockList = OrderedDict()
+		_stockList[args['stock']] = stockList[args['stock']]
+		stockList = _stockList
+
+	now = datetime.datetime.now()
+
+	period = 9999
+
+	df_div_all, _ = readDividenHistory('dividen.csv')
+	df_ROE = readROEHistory('ROE_2006_2017.csv')
+	df_gmargin = readGrossMarginProfit12Q()
+	df_nmargin = readNetMarginProfit12Q()
+	for stock in stockList:
+
+		empty, df_main = readStockHistory(stock, period, raw=False)
+		if empty == True:
+			print('no data')
+			continue
+		(stock_id, stock_name) = stockList[stock]
+		df_div = output_div(stock_id, df_main, df_div_all)
+		p = 45
+		start = len(df_main)-p
+		df_short = df_main[start:]
+		df_short.reset_index(drop=True, inplace=True)
+		if df_short.empty == True:
+			continue
+
+		stockPath = args['path'] + '/' + stock + '_' + stock_name
+		os.makedirs(stockPath, exist_ok=True)
+		
+		pngName = stockPath+'/price_volume_'+str(45)+'.png'
+		draw = ta_draw(stock_id+'  '+stock_name, df_short, None, pngName)
+		draw.draw_price_volume(str(p))
+		pngName = stockPath+'/MI_QFIIS_'+str(p)+'.png'
+		draw.draw_ta('MI_QFIIS', pngName)
+		# draw 3j
+		pngName = stockPath+'/3j_foreign_'+str(p)+'.png'
+		draw.draw_ta('3j_foreign', pngName)
+		# draw 3j
+		pngName = stockPath+'/3j_trust_'+str(p)+'.png'
+		draw.draw_ta('3j_trust', pngName)	
+		# draw 3j
+		pngName = stockPath+'/3j_dealer_'+str(p)+'.png'
+		draw.draw_ta('3j_dealer', pngName)			
+
+				
 def main(args):
 
 	pd.options.display.float_format = '{:.2f}'.format
@@ -347,7 +472,6 @@ def main(args):
 		_stockList = OrderedDict()
 		_stockList[args['stock']] = stockList[args['stock']]
 		stockList = _stockList
-		#stockList = [(args['stock'], '華晶科')]
 
 	now = datetime.datetime.now()
 
@@ -443,8 +567,13 @@ if __name__ == '__main__':
 	ap = argparse.ArgumentParser()
 	ap.add_argument("-f", "--file", required=False, default='all_stock.csv')
 	ap.add_argument("-s", "--stock", required=False, default='')
-	ap.add_argument("-p", "--path", required=False, default=False, action='store_true')
+	ap.add_argument("-p", "--path", required=True, default='')
 	ap.add_argument("-d", "--debug", required=False, default=False, action='store_true')
+	ap.add_argument("-o", "--old", required=False, default=False, action='store_true')
+	ap.add_argument("-n", "--new", required=False, default=False, action='store_true')
 	args = vars(ap.parse_args())
 
-	main(args)
+	if args['old'] == True:
+		drawOldHistory(args)
+	if args['new'] == True:
+		drawNew(args)

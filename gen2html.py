@@ -193,16 +193,20 @@ def gen2html(stock, name, fname, outpath, imgList, df_basic, df_price, comment):
 			if 'content' in news:
 				print('\t<p>{}</p>'.format(news['content']), file=fhtml)
 	
-	for (img, imgTitle, bInternalLink) in imgList:
+	for (img, imgTitle, bInternalLink, bOld) in imgList:
 		if img == '' and imgTitle == '':
 			print('<br>', file=fhtml)
 			continue
 		id = img.split('.')[0]
 		_display = 'none'
+		
 		if bInternalLink == True:
+			if bOld == True:
+				img = '../../oldhistory/{}_{}/'.format(stock, name) + img
 			_title = '\t<button onclick=\"picShowPng(\'{}\')\">{}</button>'.format(img, imgTitle)
 		else:
-			_ref = '<a href=\"{}{}\">'.format(img, stock)
+			img = img.format(stock)
+			_ref = '<a href=\"{}\">'.format(img)
 			_reftail = '</a>'
 			_title = '\t<button>{}{}{}</button>'.format(_ref, imgTitle, _reftail)
 		print(_title, file=fhtml)		

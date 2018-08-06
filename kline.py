@@ -8,70 +8,70 @@ import matplotlib.pyplot as plt
 import matplotlib
 import utility
 
-patternFunct = 	{
-	'兩烏鴉':talib.CDL2CROWS,
-	'三黑鴉':talib.CDL3BLACKCROWS,
-	'反攻':talib.CDLCOUNTERATTACK,
-	'3內部':talib.CDL3INSIDE,
-	'3線打擊':talib.CDL3LINESTRIKE,
-	'3外部':talib.CDL3OUTSIDE,
-	'南方三星':talib.CDL3STARSINSOUTH,
-	'三白兵':talib.CDL3WHITESOLDIERS,
-	'頂部棄嬰':talib.CDL3OUTSIDE,
-	'大敵當前':talib.CDLADVANCEBLOCK,
-	'腰帶線':talib.CDLBELTHOLD,
-	'脫離':talib.CDLBREAKAWAY,
-	'收盤缺影線':talib.CDLCLOSINGMARUBOZU,
-	'藏嬰吞沒':talib.CDLCONCEALBABYSWALL,
-	'烏雲壓頂':talib.CDLDARKCLOUDCOVER,
-	'十字':talib.CDLDOJI,
-	'十字星':talib.CDLDOJISTAR,
-	'T十字':talib.CDLDRAGONFLYDOJI,
-	'吞噬':talib.CDLENGULFING,
-	'十字暮星':talib.CDLEVENINGDOJISTAR,
-	'暮星':talib.CDLEVENINGSTAR,
-	'跳空並列':talib.CDLGAPSIDESIDEWHITE,
-	'倒T十字':talib.CDLGRAVESTONEDOJI,
-	'槌子':talib.CDLHAMMER,
-	'上吊線':talib.CDLHANGINGMAN,
-	'母子線':talib.CDLHARAMI,
-	'十字孕線':talib.CDLHARAMICROSS,
-	'風高浪大':talib.CDLHIGHWAVE,
-	'陷阱':talib.CDLHIKKAKE,
-	'修正陷阱':talib.CDLHIKKAKEMOD,
-	'家鴿':talib.CDLHOMINGPIGEON,
-	'三胞鴉':talib.CDLIDENTICAL3CROWS,
-	'頸內線':talib.CDLINNECK,
-	'倒頭槌':talib.CDLINVERTEDHAMMER,
-	'反沖':talib.CDLKICKING,
-	'缺影線反沖':talib.CDLKICKINGBYLENGTH,
-	'梯底':talib.CDLLADDERBOTTOM,
-	'長腳十字':talib.CDLLONGLEGGEDDOJI,
-	'長燭':talib.CDLLONGLINE,
-	'缺影線':talib.CDLMARUBOZU,
-	'相同低價':talib.CDLMATCHINGLOW,
-	'鋪墊':talib.CDLMATHOLD,
-	'十字晨星':talib.CDLMORNINGDOJISTAR,
-	'晨星':talib.CDLMORNINGSTAR,						
-	'頸上線':talib.CDLONNECK,
-	'刺透':talib.CDLPIERCING,
-	'黃包車夫':talib.CDLRICKSHAWMAN,
-	'上升下降三法':talib.CDLRISEFALL3METHODS,
-	'分離線':talib.CDLSEPARATINGLINES,
-	'射擊之星':talib.CDLSHOOTINGSTAR,
-	'短燭':talib.CDLSHORTLINE,
-	'紡錘':talib.CDLSPINNINGTOP,
-	'停頓':talib.CDLSTALLEDPATTERN,
-	'條形三明治':talib.CDLSTICKSANDWICH,
-	'探水杆':talib.CDLTAKURI,
-	'跳空並列':talib.CDLTASUKIGAP,
-	'插入':talib.CDLTHRUSTING,
-	'三星':talib.CDLTRISTAR,
-	'三河':talib.CDLUNIQUE3RIVER,
-	'跳空兩鴉':talib.CDLUPSIDEGAP2CROWS,
-	'跳空三法':talib.CDLXSIDEGAP3METHODS,
-	'三星':talib.CDLTRISTAR,
-}
+patternFunct = 	[
+	('反攻', talib.CDLCOUNTERATTACK),
+	('3內部', talib.CDL3INSIDE),
+	('3線打擊', talib.CDL3LINESTRIKE),
+	('3外部', talib.CDL3OUTSIDE),
+	('腰帶線', talib.CDLBELTHOLD),
+	('脫離', talib.CDLBREAKAWAY),
+	('收盤缺影線', talib.CDLCLOSINGMARUBOZU),
+	('藏嬰吞沒', talib.CDLCONCEALBABYSWALL),
+	('十字', talib.CDLDOJI),
+	('十字星', talib.CDLDOJISTAR),
+	('T十字', talib.CDLDRAGONFLYDOJI),
+	('吞噬', talib.CDLENGULFING),
+	('十字暮星', talib.CDLEVENINGDOJISTAR),
+	('暮星', talib.CDLEVENINGSTAR),
+	('跳空並列', talib.CDLGAPSIDESIDEWHITE),
+	('倒T十字', talib.CDLGRAVESTONEDOJI),
+	('母子線', talib.CDLHARAMI),
+	('十字孕線', talib.CDLHARAMICROSS),
+	('風高浪大', talib.CDLHIGHWAVE),
+	('陷阱', talib.CDLHIKKAKE),
+	('修正陷阱', talib.CDLHIKKAKEMOD),
+	('家鴿', talib.CDLHOMINGPIGEON),
+	('三胞鴉', talib.CDLIDENTICAL3CROWS),
+	('頸內線', talib.CDLINNECK),
+	('倒頭槌', talib.CDLINVERTEDHAMMER),
+	('反沖', talib.CDLKICKING),
+	('缺影線反沖', talib.CDLKICKINGBYLENGTH),
+	('梯底', talib.CDLLADDERBOTTOM),
+	('長腳十字', talib.CDLLONGLEGGEDDOJI),
+	('長燭', talib.CDLLONGLINE),
+	('缺影線', talib.CDLMARUBOZU),
+	('相同低價', talib.CDLMATCHINGLOW),
+	('鋪墊', talib.CDLMATHOLD),
+	('十字晨星', talib.CDLMORNINGDOJISTAR),
+	('晨星', talib.CDLMORNINGSTAR),						
+	('頸上線', talib.CDLONNECK),
+	('刺透', talib.CDLPIERCING),
+	('黃包車夫', talib.CDLRICKSHAWMAN),
+	('上升下降三法', talib.CDLRISEFALL3METHODS),
+	('分離線', talib.CDLSEPARATINGLINES),
+	('短燭', talib.CDLSHORTLINE),
+	('紡錘', talib.CDLSPINNINGTOP),
+	('停頓', talib.CDLSTALLEDPATTERN),
+	('條形三明治', talib.CDLSTICKSANDWICH),
+	('探水杆', talib.CDLTAKURI),
+	('跳空並列', talib.CDLTASUKIGAP),
+	('插入', talib.CDLTHRUSTING),
+	('三星', talib.CDLTRISTAR),
+	('三河', talib.CDLUNIQUE3RIVER),
+	('跳空兩鴉', talib.CDLUPSIDEGAP2CROWS),
+	('跳空三法', talib.CDLXSIDEGAP3METHODS),
+	('三星', talib.CDLTRISTAR),
+	('槌子', talib.CDLHAMMER),
+	('上吊線', talib.CDLHANGINGMAN),
+	('南方三星', talib.CDL3STARSINSOUTH),
+	('射擊之星', talib.CDLSHOOTINGSTAR),
+	('兩烏鴉', talib.CDL2CROWS),
+	('三黑鴉', talib.CDL3BLACKCROWS),
+	('三白兵', talib.CDL3WHITESOLDIERS),
+	('頂部棄嬰', talib.CDL3OUTSIDE),
+	('大敵當前', talib.CDLADVANCEBLOCK),
+	('烏雲壓頂', talib.CDLDARKCLOUDCOVER),
+]
 
 patternMeaning = 	{
 	'兩烏鴉':'下跌',
@@ -219,25 +219,20 @@ class kline():
 		
 	def pattern_recogintion(self):
 						
-		if False:
-			vals = talib.CDLCOUNTERATTACK(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print('CDLCOUNTERATTACK = ', np.where(vals != 0))
-			vals = talib.CDL3WHITESOLDIERS(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print('CDL3WHITESOLDIERS = ', np.where(vals != 0))
-			vals = talib.CDLADVANCEBLOCK(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print('CDLADVANCEBLOCK = ', np.where(vals != 0))
-			vals = talib.CDL3BLACKCROWS(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print('CDL3BLACKCROWS = ', np.where(vals != 0))
-			vals = talib.CDLDARKCLOUDCOVER(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print('CDLDARKCLOUDCOVER = ', np.where(vals != 0))
-			vals = talib.CDLBREAKAWAY(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print('CDLBREAKAWAY = ', np.where(vals != 0))
-		
-		for pattern, _func in patternFunct.items():
+		for (pattern, _func) in patternFunct:
 			vals = _func(self.df['open'], self.df['high'], self.df['low'], self.df['close'])
-			print(pattern, ' = ', np.where(vals != 0))
-			idx = np.where(vals != 0)
-			self.df['kline'].iloc[idx] = pattern
+			#print('run ', pattern, np.where(vals != 0)[0])
+			
+			for idx in np.where(vals != 0)[0]:
+				#if self.df['kline'].at[idx] != '':
+				#	print('{} already has kline {}'.format(self.df['DateStr'].at[idx], self.df['kline'].at[idx]))
+				#	return None
+				#try:
+				#	if self.df['kline'].at[idx] != '':
+				#		print('change {} {} to {}'.format(self.df['DateStr'].at[idx], self.df['kline'].at[idx], pattern))
+				#except:
+				#	print('')
+				self.df['kline'].at[idx] = pattern
 		#vals = talib.CDL3WHITESOLDIERS(self.df['open'].values, self.df['high'].values, self.df['low'].values, self.df['close'].values)
 		#vals = talib.CDLADVANCEBLOCK(self.df['open'].values, self.df['high'].values, self.df['low'].values, self.df['close'].values)
 		#return np.where(vals != 0)

@@ -421,50 +421,47 @@ def main():
 		args['stock'] = ''
 		args['visualize'] = False
 		args['path'] = path
-		info_main.main(args)
+		args['new'] = True
+		info_main.drawNew(args)
 		
 	
 	gen2html.df2html(df_pick, args['pick'], path+'/index.html', pick_reason)
 	gen2html.genGlobalEconomyhtml(path+'/global.html')
-	
+
 	imgList = 	[
-				('price_volume_30.png', '近30日價量', True),
-				('MI_QFIIS_30.png', '近30日外資比例', True),
-				('3j_foreign_30.png', '近30日外資進出', True),
-				('3j_trust_30.png', '近30日投信進出', True),
-				('3j_dealer_30.png', '近30日自營商進出', True),
-				('','',False),
-				('price_volume_60.png', '近60日價量', True),
-				('MI_QFIIS_60.png', '近60日外資比例', True),
-				('3j_foreign_60.png', '近60日外資進出', True),
-				('3j_trust_60.png', '近60日投信進出', True),
-				('3j_dealer_60.png', '近60日自營商進出', True),				
-				('','',False),
-				('price_volume_120.png', '近120日價量', True),
-				('MI_QFIIS_120.png', '近120日外資比例', True),
-				('3j_foreign_120.png', '近120日外資進出', True),
-				('3j_trust_120.png', '近120日投信進出', True),
-				('3j_dealer_120.png', '近30日自營商進出', True),				
-				('','',False),
-				('price_volume_240.png', '近240日價量', True),
-				('MI_QFIIS_240.png', '近240日外資比例', True),
-				('3j_foreign_240.png', '近240日外資進出', True),
-				('3j_trust_240.png', '近240日投信進出', True),
-				('3j_dealer_240.png', '近240日自營商進出', True),	
-				('','',False),
-				('price_volume.png', '2013~ 價量', True),
-				('MI_QFIIS.png', '2013~ 外資比例', True),
-				('3j_foreign.png', '2013~ 外資進出', True),
-				('3j_trust.png', '2013~ 投信進出', True),
-				('3j_dealer.png', '2013~ 自營商進出', True),				
-				('','',False),				
-				('revenue.png', '營收', True),
-				('EPS.png', 'EPS', True),
-				('ROE.png', '股東權益', True),
-				('margin_12Q.png', '12季毛/淨利率', True),
-				('share_holders.png', '股權分散表', True),
-				('https://goodinfo.tw/StockInfo/EquityDistributionClassHis.asp?STOCK_ID=', 'goodinfo股東分散表', False),
-				('','',False),	
+				('price_volume_45.png', '近日價量', True, False),
+				('MI_QFIIS_45.png', '近日外資比例', True, False),
+				('3j_foreign_45.png', '近日外資進出', True, False),
+				('3j_trust_45.png', '近日投信進出', True, False),
+				('3j_dealer_45.png', '近日自營商進出', True, False),
+				('','',False, False),
+				('price_volume_2018.png', '2018價量', True, True),
+				('price_volume_2018_5_6.png', '2018(5,6)價量', True, True),
+				('price_volume_2018_3_4.png', '2018(3,4)價量', True, True),
+				('price_volume_2018_1_2.png', '2018(1,2)價量', True, True),
+				('','',False, False),
+				('price_volume_2017.png', '2017價量', True, True),
+				('price_volume_2017_11_12.png', '2017(11,12)價量', True, True),
+				('price_volume_2017_9_10.png', '2017(9,10)價量', True, True),
+				('price_volume_2017_7_8.png', '2017(7,8)價量', True, True),
+				('price_volume_2017_5_6.png', '2017(5,6)價量', True, True),
+				('price_volume_2017_3_4.png', '2017(3,4)價量', True, True),
+				('price_volume_2017_1_2.png', '2017(1,2)價量', True, True),
+				('','',False, False),
+				('price_volume.png', '歷史價量', True, False),
+				('MI_QFIIS.png', '歷史外資比例', True, False),
+				('3j_foreign.png', '歷史外資進出', True, False),
+				('3j_trust.png', '歷史投信進出', True, False),
+				('3j_dealer.png', '歷史自營商進出', True, False),
+				('','',False, False),				
+				('https://www.cmoney.tw/follow/channel/stock-{}?chart=v', '營收', False, False),
+				('https://www.cmoney.tw/finance/f00039.aspx?s={}', '主力券商', False, False),
+				('https://www.cmoney.tw/follow/channel/stock-{}?chart=e', 'EPS', False, False),
+				('https://www.cmoney.tw/follow/channel/stock-{}?chart=f', '利潤率', False, False),
+				('margin_12Q.png', '12季毛/淨利率', True, True),
+				('share_holders.png', '股權分散表', True, True),
+				('https://goodinfo.tw/StockInfo/EquityDistributionClassHis.asp?STOCK_ID={}', 'goodinfo股東分散表', False, False),
+				('','',False, False),	
 				]
 
 	for (stock, name, _, _, _) in pickList:

@@ -459,6 +459,7 @@ def readStockHistory(stock, period, raw=True):
 		return True, None
 
 	df_main = df_main.dropna()
+	df_main.reset_index(drop=True, inplace=True)
 	#df_main['Date'] = pd.to_datetime(df_main.Date)
 	df_main['Date'] = pd.DatetimeIndex(df_main.Date).normalize()
 	df_main['DateStr'] = df_main['Date'].dt.strftime('%Y-%m-%d')
@@ -507,7 +508,7 @@ def readStockHistory(stock, period, raw=True):
 	if (total > period):
 		df_main = df_main[total-period:]	
 
-	df_main.reset_index(drop=True, inplace=True)
+	df_main.reset_index(drop=True, inplace=True)	
 	
 	return False, df_main
 	

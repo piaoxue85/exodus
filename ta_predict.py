@@ -207,11 +207,16 @@ class ta_draw(object):
 		
 		plt.draw()
 
-	def draw_basic(self, ax1, ax1_1):
+	def draw_basic(self, ax1, ax1_1, kline=True):
 		# set ax1 y lim by close		
 		ymin = np.min(self.df['close'])
 		ymax = np.max(self.df['close'])
-		ax1.set_ylim(ymin*0.85, ymax*1.15)
+		try:
+			ax1.set_ylim(ymin*0.85, ymax*1.15)
+		except:
+			print('')
+		ylim = ax1.get_ylim()
+		ylimStep = (ylim[1]-ylim[0])/20
 		# set xlim by date
 		#ax1.set_xlim(self.df['Date'].loc[0], self.df['Date'].loc[len(self.df['Date'])-1])
 		ax1.set_xlim(-1, len(self.df))
@@ -225,38 +230,56 @@ class ta_draw(object):
 		else:
 			gap = 1
 		plt.xticks(self.df.index[::gap], self.df['DateStr'].values[::gap])
-		ax1.plot(self.df.index, self.df['close'], color='C3', zorder=1)
+		ax1.plot(self.df.index, self.df['close'], color='black', zorder=1)
 		
 		idx = 0
+		last_close = -999
+		redIdx = []
+		greenIdx = []
 		for (x, close, high, low, open) in zip(self.df.index, self.df['close'], self.df['high'], self.df['low'], self.df['open']):
-			_line = Line2D([x, x], [high, low], linewidth=self.kLineWidth, color='black', zorder=2)
-			ax1.add_line(_line)
-			color = 'black' if close < open else 'white'
-			y = min(close, open)
-			rect = Rectangle((x-self.kRectWidth/2, y),self.kRectWidth,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=3)
-			ax1.add_patch(rect)
-			diff = str(close-open)
-			diff_color = 'green' if close < open else 'red'
-			if self.df['kline'].loc[x] != '':
-				if idx % 2 == 0:
-					lineY0 = high+3.6
-					lineY1 = high+2
-					y0 = high + 5.4
-					y1 = high + 4
-					diff_y = high+1
+			dateStr = self.df['DateStr'].loc[x]
+
+			if last_close != -999:
+				diff = '{:.1f}'.format(close-last_close)
+				if close >= last_close:
+					redIdx.append(x)
 				else:
-					lineY0 = low-3
-					lineY1 = low-3.6
-					y0 = low - 5
-					y1 = low - 6.4
-					diff_y = low-2
-				color, meaning = kline_meaning(self.df['kline'].loc[x])
-				_line = Line2D([x, x], [lineY0, lineY1], linewidth=self.kLineWidth*2, color=color, zorder=3)
+					greenIdx.append(x)
+			else:
+				diff = '{:.1f}'.format(close)
+			last_close = close
+			
+			if kline == True:
+				_line = Line2D([x, x], [high, low], linewidth=self.kLineWidth, color='black', zorder=2)
 				ax1.add_line(_line)
-				ax1.text(x, diff_y, diff , horizontalalignment='center', fontsize=12*self.pngSize, color=diff_color)
-				ax1.text(x, y0, self.df['kline'].loc[x] , horizontalalignment='center', fontsize=12*self.pngSize)
-				ax1.text(x, y1, meaning , horizontalalignment='center', fontsize=12*self.pngSize)
-				idx = idx + 1
+				color = 'black' if close < open else 'white'
+				y = min(close, open)
+				rect = Rectangle((x-self.kRectWidth/2, y),self.kRectWidth,abs(open-close),linewidth=0.5,edgecolor='black',facecolor=color, zorder=3)
+				ax1.add_patch(rect)
+
+				diff_color = 'green' if close < open else 'red'
+				diff_y = high+0.5*ylimStep
+				close_y = low-0.5*ylimStep
+				ax1.text(x, diff_y, diff , horizontalalignment='center', fontsize=12*self.pngSize, color=diff_color, verticalalignment='center')					
+				ax1.text(x, close_y, close , horizontalalignment='center', fontsize=12*self.pngSize, color=diff_color, verticalalignment='center')					
+				if self.df['kline'].loc[x] != '':
+					if idx % 2 == 0:
+						
+						lineY0 = high+3*ylimStep
+						lineY1 = high+1.5*ylimStep
+						y0 = lineY0 + 0.5*ylimStep
+						y1 = lineY0 + 1.5*ylimStep
+					else:
+						lineY0 = low-1*ylimStep
+						lineY1 = low-2.5*ylimStep
+						y0 = lineY1 - 0.5*ylimStep
+						y1 = lineY1 - 1.5*ylimStep
+					color, meaning = kline_meaning(self.df['kline'].loc[x])
+					_line = Line2D([x, x], [lineY0, lineY1], linewidth=self.kLineWidth*2, color=color, zorder=3)
+					ax1.add_line(_line)
+					ax1.text(x, y0, self.df['kline'].loc[x] , horizontalalignment='center', fontsize=12*self.pngSize, verticalalignment='center')
+					ax1.text(x, y1, meaning , horizontalalignment='center', fontsize=12*self.pngSize, verticalalignment='center')
+					idx = idx + 1
 		
 		# draw grid
 		if (len(self.df) < 200):
@@ -274,8 +297,9 @@ class ta_draw(object):
 		# plot the volume value
 		#ax1_1.plot(self.df.index, self.df['volume'], 'C4', label='Vol')
 		barList = ax1_1.bar(self.df.index, self.df['volume'], width=1, label='Vol', zorder=0, alpha=0.3)
-		redIdx = self.df[self.df['close'] >= self.df['open']].index
-		greenIdx = self.df[self.df['close'] < self.df['open']].index
+		
+		#redIdx = self.df[self.df['close'] >= self.df['open']].index
+		#greenIdx = self.df[self.df['close'] < self.df['open']].index
 		for g in greenIdx:
 			barList[g].set_color('g')
 		for r in redIdx:
@@ -386,7 +410,7 @@ class ta_draw(object):
 		else:
 			plt.savefig(self.pngName)
 			
-	def draw_price_volume(self, title=''):
+	def draw_price_volume(self, title='', kline=True):
 		
 		self.fig, self.ax1, = plt.subplots(1, 1, sharex=True)
 		plt.xticks(rotation=70, fontsize=12*self.pngSize)
@@ -396,7 +420,7 @@ class ta_draw(object):
 		self.fig.suptitle(self.title+title, fontsize=24*self.pngSize)
 		#self.fig.autofmt_xdate(rotation=70)
 		
-		self.draw_basic(self.ax1, self.ax1_1)
+		self.draw_basic(self.ax1, self.ax1_1, kline)
 		#if len(self.df) < 40:
 		#	self.ax1.xaxis.set_major_locator(DayLocator())
 		#elif len(self.df) < 100:
@@ -414,7 +438,7 @@ class ta_draw(object):
 		plt.savefig(self.pngName)			
 			
 			
-	def draw_ta(self, type, pngName):
+	def draw_ta(self, type, pngName, kline=True):
 		self.fig, (self.ax1, self.ax2) = plt.subplots(2, 1, sharex=True)
 		plt.xticks(rotation=70)
 		self.ax1_1 = self.ax1.twinx()
@@ -423,7 +447,9 @@ class ta_draw(object):
 		self.fig.suptitle(self.title + '   ' + type, fontsize=24)
 		#self.fig.autofmt_xdate(rotation=70)
 		
-		self.draw_basic(self.ax1, self.ax1_1)
+		self.draw_basic(self.ax1, self.ax1_1, kline)
+		
+		period = '{} {} {}'.format(self.df['Date'][0].year, self.df['Date'][0].month, self.df['Date'][0].month)
 		
 		if type == 'KD':
 			# plot the KD
@@ -455,7 +481,7 @@ class ta_draw(object):
 
 		if type == 'PER':
 			# plot the PER
-			self.fig.suptitle(self.title + '   ' + '本益比', fontsize=18)
+			self.fig.suptitle(self.title + '   ' + '本益比  '+period, fontsize=18)
 			self.ax2_lines = dict()
 			self.ax2_lines['PER'] = self.ax2.plot(self.df.index, self.df['PER'])[0]
 			min = self.df['PER'].min()
@@ -466,7 +492,7 @@ class ta_draw(object):
 
 		if type == 'MI_QFIIS':
 			# plot the MI_QFIIS
-			self.fig.suptitle(self.title + '   ' + '	外資比例', fontsize=18)
+			self.fig.suptitle(self.title + '   ' + '	外資比例  '+period, fontsize=18)
 			self.ax2_lines = dict()
 			self.ax2_lines['MI_QFIIS'] = self.ax2.plot(self.df.index, self.df['MI_QFIIS'])[0]
 			min = self.df['MI_QFIIS'].loc[self.df['MI_QFIIS']!=0].min()
@@ -477,7 +503,7 @@ class ta_draw(object):
 
 		if type == '3j_foreign':
 			# plot the 3j
-			self.fig.suptitle(self.title + '   ' + '   外資進出', fontsize=18)
+			self.fig.suptitle(self.title + '   ' + '   外資進出  '+period, fontsize=18)
 			self.ax2.plot(self.df.index, self.df['foreign_buy'])[0]
 			self.ax2.plot(self.df.index, self.df['foreign_sell'])[0]
 			min = self.df['foreign_buy'].loc[self.df['foreign_buy']!=0].min()
@@ -493,7 +519,7 @@ class ta_draw(object):
 
 		if type == '3j_trust':
 			# plot the 3j
-			self.fig.suptitle(self.title + '   ' + '   投信進出', fontsize=18)
+			self.fig.suptitle(self.title + '   ' + '   投信進出  '+period, fontsize=18)
 			self.ax2.plot(self.df.index, self.df['trust_buy'])[0]
 			self.ax2.plot(self.df.index, self.df['trust_sell'])[0]
 			min = self.df['trust_buy'].loc[self.df['trust_buy']!=0].min()
@@ -509,7 +535,7 @@ class ta_draw(object):
 			
 		if type == '3j_dealer':
 			# plot the 3j
-			self.fig.suptitle(self.title + '   ' + '   自營商進出', fontsize=18)
+			self.fig.suptitle(self.title + '   ' + '   自營商進出  '+period, fontsize=18)
 			self.ax2.plot(self.df.index, self.df['dealer_buy'])[0]
 			self.ax2.plot(self.df.index, self.df['dealer_sell'])[0]
 			min = self.df['dealer_buy'].loc[self.df['dealer_buy']!=0].min()
@@ -525,7 +551,7 @@ class ta_draw(object):
 			
 		if type == 'revenue':
 			# plot the PER
-			self.fig.suptitle(self.title + '   ' + '營收', fontsize=18)
+			self.fig.suptitle(self.title + '   ' + '營收  '+period, fontsize=18)
 			df_to_draw = self.df[self.df['revenue']!=0]
 			self.ax2_lines = dict()
 			self.ax2_lines['revenue'] = self.ax2.plot(df_to_draw.index, df_to_draw['revenue'])[0]

@@ -15,7 +15,7 @@ from collections import OrderedDict
 import datetime
 import math
 import info_main
-from kline import kline
+from kline import *
 
 def main():
 	if False:
@@ -123,7 +123,7 @@ def main():
 		plt.rcParams['figure.figsize'] = [16, 9]	
 		info_main.draw_share_holders('9921', u'股權分散表', 'share_holders.png')
 	
-	if True:
+	if False:
 		#stockList = readStockList('policy/top_watch.csv')
 		stockList = readStockList('policy/test1.csv')
 		for stock in stockList:
@@ -135,4 +135,17 @@ def main():
 			pngName = 'test_result'+'/kline_test.png'
 			draw = ta_draw(stock+'  '+'巨大 kline', df_price, None, pngName, pngSize=3, kLineWidth=1, kRectWidth=0.8)
 			draw.draw_price_volume()
+	if True:
+		stockList = readStockList('policy/test1.csv')
+		for stock in stockList:
+			empty, df_price = readStockHistory(stock, 9999, raw=False)
+			if empty == True:
+				print('empty...')
+				continue
+			for index, row in df_price.iterrows():
+				if row['kline'] == '':
+					continue
+				#if patterncolor[row['kline']]=='green' or patterncolor[row['kline']]=='red':
+				print(row['DateStr'], patterncolor[row['kline']], row['kline'])
+		
 main()
