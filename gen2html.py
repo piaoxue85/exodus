@@ -70,14 +70,16 @@ def df2html(df, title, outpath, pick_reason):
 	
 def genBacis2html(fhtml, df_basic, df_price, stock):
 	_title = "<h2 style=\"color:red;\">基本資料</h2>"
-	print(_title, file=fhtml)	
-	_space = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
-	row = df_basic.loc[df_basic['stock']==stock]
-	print('\t<p><b>股本(億)</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>市值(億)</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['股本(億)'].values[0], _space, row['市值(億)'].values[0]), file=fhtml)
-	print('\t<p><b>成立年數</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>上市年數</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['成立年數'].values[0], _space, row['上市年數'].values[0]), file=fhtml)
-	print('\t<p><b>產業別</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>董事長</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>總經理</b>     {}</p>'.format(row['產業別'].values[0], _space, row['董事長'].values[0], _space, row['總經理'].values[0]), file=fhtml)
-	print('\t<p><b>外資比例</b>&nbsp&nbsp&nbsp&nbsp{}%&nbsp&nbsp&nbsp({})</p>'.format(df_price['MI_QFIIS'].tail(1).values[0], df_price['DateStr'].tail(1).values[0]), file=fhtml)
-
+	print(_title, file=fhtml)
+	try:
+		_space = '&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp'
+		row = df_basic.loc[df_basic['stock']==stock]
+		print('\t<p><b>股本(億)</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>市值(億)</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['股本(億)'].values[0], _space, row['市值(億)'].values[0]), file=fhtml)
+		print('\t<p><b>成立年數</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>上市年數</b>&nbsp&nbsp&nbsp&nbsp{}</p>'.format(row['成立年數'].values[0], _space, row['上市年數'].values[0]), file=fhtml)
+		print('\t<p><b>產業別</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>董事長</b>&nbsp&nbsp&nbsp&nbsp{}{}<b>總經理</b>     {}</p>'.format(row['產業別'].values[0], _space, row['董事長'].values[0], _space, row['總經理'].values[0]), file=fhtml)
+		print('\t<p><b>外資比例</b>&nbsp&nbsp&nbsp&nbsp{}%&nbsp&nbsp&nbsp({})</p>'.format(df_price['MI_QFIIS'].tail(1).values[0], df_price['DateStr'].tail(1).values[0]), file=fhtml)
+	except:
+		return
 def genComment2html(fhtml, comment, stock):
 	_title = "<h2 style=\"color:red;\">評價</h2>"
 	print(_title, file=fhtml)		

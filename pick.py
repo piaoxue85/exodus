@@ -248,6 +248,8 @@ def pick_by_policy(df_ROE, df_div, df_basic, fname):
 			name = stock
 
 		price = df_price['close'].tail(1).values[0]
+		k = df_price['k'].tail(1).values[0]
+		d = df_price['d'].tail(1).values[0]
 		std_price = np.std(df_price['close'])
 		mean_price = np.mean(df_price['close'])
 		
@@ -264,7 +266,7 @@ def pick_by_policy(df_ROE, df_div, df_basic, fname):
 		else:
 			to_pick = True
 		if to_pick == True:
-			pickList.append((stock, name, price, std_price, mean_price))
+			pickList.append((stock, name, price, std_price, mean_price, k, d))
 			#break
 	print('pick ', pickList)
 	return pickList, reason
@@ -368,13 +370,15 @@ def main():
 	nameListFile = open(nameListFileName, mode='w', encoding="utf-8")
 
 	colList = [	'代碼', '名稱', '股價', '平均股價', '股價標準差',
+				'KD',
 				'平均配息', '配息標準差',
 				'平均殖利率', '殖利率標準差',
 				'2018配息', '2018殖利率', 
-				'2017配息',	'2017殖利率'
+				#'2017配息',	'2017殖利率',
+				
 				]
 	df_pick = pd.DataFrame(columns=colList) 
-	for (stock, name, price, std_price, mean_price) in pickList:
+	for (stock, name, price, std_price, mean_price, k, d) in pickList:
 
 		# write stock list
 		try:
@@ -387,11 +391,14 @@ def main():
 			_yield_2018 = row['yield_2018'].values[0]
 			_div_2017_all = row['div_2017_all'].values[0]
 			_yield_2017 = row['yield_2017'].values[0]
+			#kd = 'K'+str(k) + ',' + 'D'+str(d)
+			kd='K{:.1f},D{:.1f}'.format(k,d)
 			valList = [	stock, name, price, mean_price, std_price,
+						str(kd),
 						_mean_div_all, _std_div_all, 
 						_mean_yield, _std_yield,
 						_div_2018_all, _yield_2018,
-						_div_2017_all, _yield_2017
+						#_div_2017_all, _yield_2017
 						]
 			_new = pd.DataFrame([valList], columns=colList)
 			nameListFile.write('{},{}\n'.format(stock, name))
@@ -464,7 +471,7 @@ def main():
 				('','',False, False),	
 				]
 
-	for (stock, name, _, _, _) in pickList:
+	for (stock, name, _, _, _,_,_) in pickList:
 		stockPath = path + '/' + stock + '_' + name
 		os.makedirs(stockPath, exist_ok=True)
 		ipath = stockPath + '/' + 'index.html'
